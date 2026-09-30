@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>nicrawl · explorar ofertas</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">n<span>·</span></span><span>nicrawl</span></div>
+    <span class="topbar-note">Tu colección local de ofertas</span>
+    <span class="local-pill">● Solo en este equipo</span>
+  </header>
+  <main class="shell">
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">EXPLORAR · COMPARAR · DECIDIR</p>
+      <h1 id="page-title">Encontrá lo que vale la pena revisar.</h1>
+      <p>Ofertas guardadas de Remotive y GitLab, con origen, frescura y razones visibles. Tu criterio sigue siendo el que decide.</p>
+    </section>
+    <div class="workspace">
+      <aside class="filters" aria-label="Filtros de ofertas">
+        <div class="panel-heading"><h2>Tu búsqueda</h2><span class="panel-step">01 / FILTRAR</span></div>
+        <div class="mode-switch" role="group" aria-label="Modo de consulta">
+          <button id="mode-list" class="mode active" type="button" aria-pressed="true">Explorar</button>
+          <button id="mode-rank" class="mode" type="button" aria-pressed="false">Priorizar</button>
+        </div>
+        <form id="search-form">
+          <label for="query">Palabra clave <span class="label-hint">en título, empresa o texto</span></label>
+          <input id="query" name="query" type="search" placeholder="Ej. Python" autocomplete="off">
+          <label for="company">Empresa</label>
+          <input id="company" name="company" type="search" placeholder="Cualquier empresa" autocomplete="off">
+          <label for="source">Fuente</label>
+          <select id="source" name="source">
+            <option value="">Todas las fuentes</option>
+            <option value="remotive">Remotive</option>
+            <option value="greenhouse:gitlab">GitLab · Greenhouse</option>
+          </select>
+          <label for="location">Ubicación declarada <span class="label-hint">no garantiza elegibilidad</span></label>
+          <input id="location" name="location_text" type="search" placeholder="Ej. LATAM" autocomplete="off">
+          <div id="rank-fields" class="rank-fields" hidden>
+            <div class="field-divider"><span>Preferencias para ordenar</span></div>
+            <label for="want">Me interesa <span class="label-hint">separá términos con comas</span></label>
+            <input id="want" name="want" type="text" placeholder="Python, datos" autocomplete="off">
+            <label for="avoid">Prefiero evitar</label>
+            <input id="avoid" name="avoid" type="text" placeholder="Senior, ventas" autocomplete="off">
+            <label for="mode">Modalidad deseada</label>
+            <select id="mode" name="mode">
+              <option value="">Sin preferencia</option>
+              <option value="remote">Remoto</option>
+              <option value="hybrid">Híbrido</option>
+              <option value="onsite">Presencial</option>
+            </select>
+            <label class="checkbox-row"><input id="include-dismissed" type="checkbox"> Incluir descartadas</label>
+            <p class="helper">Cada resultado muestra los puntos aportados por título, tags, descripción y modalidad.</p>
+          </div>
+          <button class="submit" type="submit"><span id="submit-label">Buscar ofertas</span><span aria-hidden="true">↗</span></button>
+        </form>
+        <p class="aside-footer">Los avisos pueden haber cambiado. Abrí siempre el enlace original antes de decidir.</p>
+      </aside>
+      <section class="results" aria-label="Resultados">
+        <div class="results-head"><div><p class="eyebrow">02 / RESULTADOS</p><h2 id="results-title">Ofertas guardadas</h2></div><div id="result-count" class="count" aria-live="polite">—</div></div>
+        <p id="result-meta" class="result-meta">Consultando la colección local…</p>
+        <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+        <div id="cards" class="cards"></div>
+      </section>
+      <aside id="detail" class="detail" aria-label="Detalle de oferta">
+        <div class="empty-detail"><div class="empty-icon" aria-hidden="true">↗</div><p class="eyebrow">03 / REVISAR</p><h2>Elegí una oferta</h2><p>Acá vas a ver el aviso completo, su procedencia y tus notas.</p></div>
+      </aside>
+    </div>
+  </main>
+  <footer>nicrawl · Tus datos permanecen en tu base local · CLI disponible en paralelo</footer>
+</body>
+</html>
