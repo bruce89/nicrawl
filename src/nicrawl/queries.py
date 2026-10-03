@@ -16,6 +16,7 @@ class Filters:
     company: str = ""
     source: str = ""
     location_text: str = ""
+    title_query: str = ""
 
     def matches(self, job: dict[str, Any]) -> bool:
         def contains(needle: str, value: str | None) -> bool:
@@ -25,6 +26,7 @@ class Filters:
             (not self.source or job["source_id"] == self.source)
             and contains(self.company, job["company"])
             and contains(self.location_text, job["location_raw"])
+            and contains(self.title_query, job["title"])
             and any(
                 contains(self.query, job[field])
                 for field in ("title", "company", "description_text")

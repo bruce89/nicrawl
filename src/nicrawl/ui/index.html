@@ -12,6 +12,7 @@
   <header class="topbar">
     <div class="brand"><span class="brand-mark" aria-hidden="true">n<span>·</span></span><span>nicrawl</span></div>
     <span class="topbar-note">Tu colección local de ofertas</span>
+    <a href="/applications">Candidaturas</a>
     <span class="local-pill">● Solo en este equipo</span>
   </header>
   <main class="shell">
@@ -23,6 +24,21 @@
     <div class="workspace">
       <aside class="filters" aria-label="Filtros de ofertas">
         <div class="panel-heading"><h2>Tu búsqueda</h2><span class="panel-step">01 / FILTRAR</span></div>
+        <section class="saved-searches" aria-label="Búsquedas guardadas">
+          <label for="saved-search">Retomar una búsqueda</label>
+          <select id="saved-search"><option value="">Elegí una búsqueda…</option></select>
+          <button id="load-search" type="button" class="save">Cargar búsqueda</button>
+          <details class="description">
+          <summary>Guardar configuración actual</summary>
+          <label for="search-name">Nombre para guardar</label>
+          <input id="search-name" type="text" maxlength="48" placeholder="Ej. senior-uy">
+          <label for="search-goal">Qué buscás <span class="label-hint">contexto para tu revisión</span></label>
+          <input id="search-goal" type="text" maxlength="240" placeholder="Ej. remoto desde Uruguay">
+          <label class="checkbox-row"><input id="replace-search" type="checkbox"> Reemplazar si ya existe</label>
+          <button id="save-search" type="button" class="save">Guardar filtros y preferencias</button>
+          </details>
+          <p id="saved-status" class="helper" role="status" aria-live="polite"></p>
+        </section>
         <div class="mode-switch" role="group" aria-label="Modo de consulta">
           <button id="mode-list" class="mode active" type="button" aria-pressed="true">Explorar</button>
           <button id="mode-rank" class="mode" type="button" aria-pressed="false">Priorizar</button>
@@ -30,6 +46,8 @@
         <form id="search-form">
           <label for="query">Palabra clave <span class="label-hint">en título, empresa o texto</span></label>
           <input id="query" name="query" type="search" placeholder="Ej. Python" autocomplete="off">
+          <label for="title-query">Texto en el título <span class="label-hint">además de la palabra clave</span></label>
+          <input id="title-query" name="title_query" type="search" placeholder="Ej. Engineer" autocomplete="off">
           <label for="company">Empresa</label>
           <input id="company" name="company" type="search" placeholder="Cualquier empresa" autocomplete="off">
           <label for="source">Fuente</label>
@@ -40,6 +58,8 @@
           </select>
           <label for="location">Ubicación declarada <span class="label-hint">no garantiza elegibilidad</span></label>
           <input id="location" name="location_text" type="search" placeholder="Ej. LATAM" autocomplete="off">
+          <label for="limit">Máximo de resultados</label>
+          <input id="limit" name="limit" type="number" min="1" max="200" value="50" required>
           <div id="rank-fields" class="rank-fields" hidden>
             <div class="field-divider"><span>Preferencias para ordenar</span></div>
             <label for="want">Me interesa <span class="label-hint">separá términos con comas</span></label>
@@ -54,6 +74,8 @@
               <option value="onsite">Presencial</option>
             </select>
             <label class="checkbox-row"><input id="include-dismissed" type="checkbox"> Incluir descartadas</label>
+            <label for="fields">Campos para puntuar</label>
+            <input id="fields" name="fields" type="text" value="title,tags,description">
             <p class="helper">Cada resultado muestra los puntos aportados por título, tags, descripción y modalidad.</p>
           </div>
           <button class="submit" type="submit"><span id="submit-label">Buscar ofertas</span><span aria-hidden="true">↗</span></button>

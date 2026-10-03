@@ -14,7 +14,7 @@ HOST = "www.scrapethissite.com"
 ROOT = f"https://{HOST}"
 PAGE = ROOT + "/pages/forms/"
 ROBOTS = ROOT + "/robots.txt"
-AGENT = "nicrawl-lab/0.7.0"
+AGENT = "nicrawl-lab/0.10.0"
 
 
 class LabError(RuntimeError):

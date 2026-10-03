@@ -45,3 +45,11 @@ Invoke-RestMethod -Method Patch -Uri "$base/api/jobs/$encoded/personal" -Content
 El último ejemplo **escribe** solo la revisión local. Para revertirla: `@{state='unreviewed'; clear_note=$true} | ConvertTo-Json` en otro `PATCH`. `state` admite `favorite`, `dismissed`, `unreviewed`. `note` se limita a 2.000 caracteres en el caso de uso. El cuerpo HTTP tiene máximo 4 KiB.
 
 La API está pensada para un equipo personal. No hay autenticación multiusuario ni CORS. El servidor comprueba `Host` en toda petición y `Origin` en escrituras, y entrega HTML/JS/CSS con una política de contenido restringida. No debe exponerse a la red local o Internet mediante un proxy. Cualquier adaptación futura para agentes debe diseñar permisos y límites antes de ofrecer escrituras o recolección.
+
+## I9
+
+`title_query` filtra una subcadena del título en GET jobs/rank, combinada con los demás filtros. Rutas GET/PUT `/api/searches` administran perfiles de la misma base; [contratos y ejemplos](SAVED_SEARCHES.md). Escrituras preservan Host/Origin y JSON; no recolectan datos.
+
+## I10
+
+GET/POST `/api/applications` y GET/PATCH `/api/applications/<uuid>` permiten seguimiento personal. Revisiones viejas devuelven 409; las escrituras requieren Host/Origin local, JSON y cuerpo de hasta 16384 bytes. UI `/applications`. [Contrato](APPLICATIONS.md). No cambia favoritos ni incorpora envío externo.

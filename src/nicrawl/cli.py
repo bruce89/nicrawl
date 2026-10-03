@@ -17,6 +17,7 @@ from typing import Annotated
 import typer
 
 from nicrawl import queries
+from nicrawl.application_cli import app as applications_app
 from nicrawl.collection import collect as collect_jobs
 from nicrawl.concurrency_lab import compare as compare_concurrency
 from nicrawl.exporting import export_file
@@ -27,6 +28,7 @@ from nicrawl.personal import Preferences
 from nicrawl.personal import mark as mark_job
 from nicrawl.personal import rank as rank_jobs
 from nicrawl.planning import plan as plan_sources
+from nicrawl.saved_cli import app as saved_app
 from nicrawl.server import HOST, create_server
 from nicrawl.sources.demo_html import PageStructureError, Scenario, load_scenario, parse_jobs
 from nicrawl.storage import Repository, StorageError
@@ -38,6 +40,8 @@ app = typer.Typer(
     rich_markup_mode=None,
     pretty_exceptions_enable=False,
 )
+app.add_typer(saved_app, name="saved")
+app.add_typer(applications_app, name="applications")
 
 
 def run() -> None:
@@ -219,6 +223,49 @@ def serve_command(
         server.server_close()
 
 
+@app.command("mcp")
+def mcp_command(
+    ctx: typer.Context,
+    max_calls: Annotated[int, typer.Option(min=1, max=1000)] = 100,
+) -> None:
+    """Servir tres herramientas de lectura por stdio (requiere extra agents)."""
+    try:
+        from nicrawl.mcp_server import create_mcp_server
+    except ModuleNotFoundError as error:
+        typer.echo("Instalá el extra: uv sync --locked --extra agents.", err=True)
+        raise typer.Exit(1) from error
+    try:
+        with closing(Repository(ctx.obj, readonly=True)):
+            pass
+        create_mcp_server(ctx.obj, max_calls=max_calls).run(transport="stdio")
+    except (StorageError, sqlite3.Error, OSError, ValueError) as error:
+        typer.echo(f"Error MCP local: {terminal_text(str(error))}", err=True)
+        raise typer.Exit(1) from error
+
+
+@app.command("agent-demo")
+def agent_demo_command(
+    ctx: typer.Context,
+    local: Annotated[
+        bool, typer.Option(help="Leer la base --db; por defecto usa datos ficticios.")
+    ] = False,
+) -> None:
+    """Probar cliente y servidor MCP por stdio, sin LLM ni API key."""
+    try:
+        from nicrawl.agent_demo import run_demo
+    except ModuleNotFoundError as error:
+        typer.echo("Instalá el extra: uv sync --locked --extra agents.", err=True)
+        raise typer.Exit(1) from error
+    try:
+        result = asyncio.run(run_demo(ctx.obj, local=local))
+    except Exception as error:
+        typer.echo(
+            "No se completó la demo MCP; revisá base, extra agents y salida de error.", err=True
+        )
+        raise typer.Exit(1) from error
+    typer.echo(json.dumps(result, ensure_ascii=True, indent=2))
+
+
 @app.command("plan")
 def plan_command(ctx: typer.Context) -> None:
     """Estimar oportunidades de ambas fuentes sin red ni escritura."""
@@ -319,6 +366,7 @@ def _read_error(error: Exception) -> None:
 def list_command(
     ctx: typer.Context,
     query: Query = "",
+    title_query: Query = "",
     company: Company = "",
     source: QuerySource = QuerySource.ALL,
     location_text: Location = "",
@@ -329,7 +377,11 @@ def list_command(
         report = queries.search(
             ctx.obj,
             queries.Filters(
-                query, company, "" if source == QuerySource.ALL else source, location_text
+                query,
+                company,
+                "" if source == QuerySource.ALL else source,
+                location_text,
+                title_query,
             ),
             limit=limit,
         )
@@ -397,6 +449,7 @@ def rank_command(
         str, typer.Option(help="Reglas de texto activas, separadas por coma.")
     ] = "title,tags,description",
     query: Query = "",
+    title_query: Query = "",
     company: Company = "",
     source: QuerySource = QuerySource.ALL,
     location_text: Location = "",
@@ -416,7 +469,11 @@ def rank_command(
                 tuple(part.strip() for part in fields.split(",") if part.strip()),
             ),
             filters=queries.Filters(
-                query, company, "" if source == QuerySource.ALL else source, location_text
+                query,
+                company,
+                "" if source == QuerySource.ALL else source,
+                location_text,
+                title_query,
             ),
             limit=limit,
             include_dismissed=include_dismissed,
@@ -451,6 +508,7 @@ def export_command(
     output: Annotated[Path, typer.Option(help="Archivo destino local.")],
     format: ExportFormat = ExportFormat.JSON,
     query: Query = "",
+    title_query: Query = "",
     company: Company = "",
     source: QuerySource = QuerySource.ALL,
     location_text: Location = "",
@@ -466,7 +524,11 @@ def export_command(
         report = queries.search(
             ctx.obj,
             queries.Filters(
-                query, company, "" if source == QuerySource.ALL else source, location_text
+                query,
+                company,
+                "" if source == QuerySource.ALL else source,
+                location_text,
+                title_query,
             ),
             limit=limit,
         )

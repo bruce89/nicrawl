@@ -1,6 +1,6 @@
 # nicrawl — recolector de ofertas y laboratorio de Python
 
-**Aplicación 0.7.0 · 28 de septiembre de 2026 · I0–I7 implementados.**
+**Aplicación 0.10.0 · 30 de septiembre de 2026 · I0–I10 implementados.**
 
 nicrawl reúne ofertas de Remotive y del board GitLab en Greenhouse, las valida y guarda en SQLite con identidad, tiempos de observación e historial de cambios. También conserva la demo HTML offline de I1. El objetivo paralelo es aprender Python y sistemas de datos desde experiencia en ingeniería de software/iOS.
 
@@ -38,6 +38,27 @@ Política: una oportunidad cada 12 horas, máximo cuatro intentos en 24 horas y 
 
 Datos con origen y URL individual, sin republicación a terceros. Las ofertas de Remotive tienen la demora declarada en [su API](https://remotive.com/remote-jobs/api); una descarga reciente no garantiza que una vacante continúe abierta.
 
+## Seguimiento de candidaturas (I10)
+
+Abrí `nicrawl serve` y entrá en **Candidaturas**, o usá **Crear seguimiento** en el detalle de una oferta. También disponible por terminal con `nicrawl applications`. Historial, estados y referencias manuales, sin enviar postulaciones ni descargar URLs. [Guía I10](LearnDocs/18-application-tracking.md) · [Contrato](docs/APPLICATIONS.md).
+
+## Búsquedas guardadas y pertinencia (I9)
+
+```powershell
+.\.venv\Scripts\nicrawl.exe saved run senior-uy
+```
+
+En esta instalación quedó configurado `senior-uy`: Senior Software Engineer, remoto desde Uruguay o presencial en Uruguay. En una copia nueva se crea siguiendo la [guía I9](LearnDocs/17-saved-searches-and-relevance.md). UI/CLI/API comparten perfiles y filtro por título; evaluación sobre una muestra fija con etiquetas humanas y diagnóstico por fuente. [Contrato](docs/SAVED_SEARCHES.md).
+
+## Herramientas para agentes (I8)
+
+```powershell
+.\.tools\uv\Scripts\uv.exe --system-certs sync --locked --extra agents
+.\.venv\Scripts\nicrawl.exe agent-demo
+```
+
+Demo MCP local con datos sintéticos, sin API key. `agent-demo --local` lee tu colección. [Guía I8](LearnDocs/16-agent-tools.md) · [Contrato y configuración](docs/AGENT_TOOLS.md).
+
 ## Aprender con esta versión
 
 1. [I7: UI y API local](LearnDocs/15-local-ui-api.md): comparar navegador, HTTP y CLI sobre casos de uso compartidos.
@@ -49,15 +70,15 @@ Datos con origen y URL individual, sin republicación a terceros. Las ofertas de
 7. [I1: primer corte HTML](LearnDocs/08-first-working-slice.md): fixtures y extracción offline.
 8. [LearnDocs](LearnDocs/README.md): fundamentos, analogías con iOS y casos reales.
 9. [Arquitectura](docs/ARCHITECTURE.md), [modelo](docs/DATA_MODEL.md) y [ADR](docs/adr/README.md).
-10. [Roadmap](docs/ROADMAP.md) y [fichas](docs/FIRST_ITERATIONS.md): I8+ agentes pendiente de aprobación.
+10. [Roadmap](docs/ROADMAP.md) y [fichas](docs/FIRST_ITERATIONS.md): I11+ pendiente de aprobación.
 
 ## Implementación y evidencia
 
 Python 3.14.6, uv 0.12.19, Typer, Beautiful Soup, HTTPX 0.28.1, Pydantic 2.13.5 y sqlite3. Resolución completa en `uv.lock`. Instalación y controles en [IMPLEMENTATION](docs/IMPLEMENTATION.md).
 
-**143 pruebas pasan**, sin red real en la suite. Ruff y mypy pasan. Se probaron publicación atómica, duplicados/conflictos, ausencia sin borrado, fallos HTTP, cooldown durable, límite de bytes, bloqueo entre procesos y recuperación tras crash. [Evidencia](VALIDATION.md).
+**197 pruebas pasan**, sin red real en la suite. Ruff y mypy pasan. Se probaron publicación atómica, duplicados/conflictos, ausencia sin borrado, fallos HTTP, cooldown durable, límite de bytes, bloqueo entre procesos y recuperación tras crash. [Evidencia](VALIDATION.md).
 
-I7 agrega UI y API locales con `serve`, sin duplicar reglas de negocio ni adquirir datos en segundo plano. I6 agrega `rank` con razones visibles, `mark` para notas/estados personales y esquema SQLite 2. I5 agrega `plan`, `collect-all` secuencial y `lab-concurrency` sin red real; cinco mediciones sintéticas dieron una mejora mediana de 1,48×. La publicación de ofertas permanece secuencial y no hay scheduler instalado. I4 agrega el board GitLab/Greenhouse y un laboratorio HTML externo que revisa robots.txt y extrae una muestra de dos páginas sin persistirla. I3 agrega list, show, changes y export JSON/CSV sin red. Filtros Unicode compartidos, historia por corrida, frescura y escritura atómica. Las consultas emiten JSON reutilizable desde PowerShell. La búsqueda sobre 10.000 ofertas sintéticas se midió en aproximadamente 0,36 s (sin arranque CLI). No hay AI, agentes ni publicaciones automáticas. Los ejercicios personales del usuario siguen pendientes; no se confunden con las pruebas técnicas.
+I7 agrega UI y API locales con `serve`, sin duplicar reglas de negocio ni adquirir datos en segundo plano. I6 agrega `rank` con razones visibles, `mark` para notas/estados personales y esquema SQLite 2. I5 agrega `plan`, `collect-all` secuencial y `lab-concurrency` sin red real; cinco mediciones sintéticas dieron una mejora mediana de 1,48×. La publicación de ofertas permanece secuencial y no hay scheduler instalado. I4 agrega el board GitLab/Greenhouse y un laboratorio HTML externo que revisa robots.txt y extrae una muestra de dos páginas sin persistirla. I3 agrega list, show, changes y export JSON/CSV sin red. Filtros Unicode compartidos, historia por corrida, frescura y escritura atómica. Las consultas emiten JSON reutilizable desde PowerShell. La búsqueda sobre 10.000 ofertas sintéticas se midió en aproximadamente 0,36 s (sin arranque CLI). I8 ofrece herramientas MCP de lectura y una demo sin modelo; no hay agente autónomo ni publicaciones automáticas. Los ejercicios personales del usuario siguen pendientes; no se confunden con las pruebas técnicas.
 
 ## Referencia
 
@@ -68,7 +89,8 @@ I7 agrega UI y API locales con `serve`, sin duplicar reglas de negocio ni adquir
 | [Fuentes](docs/DATA_SOURCES.md) | Contratos y alcance de Remotive, Greenhouse y HTML de laboratorio |
 | [Operación](docs/OPERATIONS.md) | Políticas y recuperación |
 | [Calidad](docs/QUALITY.md) | Escenarios trazables |
-| [Registro de aprobación](docs/OPEN_QUESTIONS.md) | I7 aprobado e implementado; I8+ pendiente |
+| [Registro de aprobación](docs/OPEN_QUESTIONS.md) | I10 aprobado e implementado; I11+ pendiente |
 | [Extensiones](docs/EXTENSIONS_AI.md) | Ideas posteriores |
+| [Próximos cortes](docs/NEXT_STEPS.md) | I8 y camino hacia postulaciones asistidas |
 
 El código y la documentación se versionan en [GitHub](https://github.com/bruce89/nicrawl). La entrega excluye bases, entornos, logs y archivos temporales.

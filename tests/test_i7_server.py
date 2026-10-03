@@ -131,10 +131,16 @@ def test_write_requires_json_and_same_origin(local_api):
         ).status_code
         == 403
     )
-    assert (
-        client.get("/api/health", headers={"Host": "evil.example"}).status_code
-        == 403
-    )
+    assert client.get("/api/health", headers={"Host": "evil.example"}).status_code == 403
+    # Repetir cuerpos rechazados: el cliente debe recibir el error, no TCP reset.
+    for _ in range(10):
+        assert (
+            client.patch(
+                url, json={"state": "favorite"}, headers={"Host": "evil.example"}
+            ).status_code
+            == 403
+        )
+    assert client.get("/api/jobs/remotive:101").json()["personal"]["state"] == "unreviewed"
     assert client.patch(url, json={"unexpected": True}).status_code == 400
     assert client.patch(url, json={"note": "x" * 3000}).status_code == 400
     assert (
@@ -143,3 +149,57 @@ def test_write_requires_json_and_same_origin(local_api):
         ).status_code
         == 200
     )
+
+
+def test_saved_search_api_cli_parity_and_write_guards(local_api):
+    client, database = local_api
+    body = {"profile": {"name": "python", "query": "Python"}, "replace": False}
+    assert (
+        client.put(
+            "/api/searches", json=body, headers={"Origin": "https://evil.example"}
+        ).status_code
+        == 403
+    )
+    assert client.get("/api/searches").json()["searches"] == []
+    assert client.put("/api/searches", json=body).status_code == 200
+    assert client.put("/api/searches", json=body).status_code == 400
+
+    assert client.get("/api/searches/python").json()["query"] == "Python"
+    api = client.get("/api/searches/python/run").json()
+    cli = CliRunner().invoke(app, ["--db", str(database), "saved", "run", "python"])
+    assert cli.exit_code == 0
+    assert api["jobs"] == json.loads(cli.output)["jobs"]
+    assert client.get("/api/jobs?query=Python&title_query=Data").json()["total"] == 1
+    assert client.get("/api/rank?want=Python&title_query=Data").json()["total"] == 1
+    body["replace"] = True
+    body["profile"]["query"] = "Data"
+    assert client.put("/api/searches", json=body).status_code == 200
+    body["profile"]["unexpected"] = "x"
+    assert client.put("/api/searches", json=body).status_code == 400
+
+
+def test_application_api_history_guards_and_cli_parity(local_api):
+    client, database = local_api
+    body = {"job_key": "greenhouse%3Agitlab:202"}
+    assert (
+        client.post(
+            "/api/applications", json=body, headers={"Origin": "https://evil.example"}
+        ).status_code
+        == 403
+    )
+    assert client.get("/api/applications").json()["total"] == 0
+    created = client.post("/api/applications", json=body)
+    assert created.status_code == 200
+    identifier = created.json()["application"]["id"]
+    assert client.post("/api/applications", json=body).json()["created"] is False
+    path = "/api/applications/" + identifier
+    update = {"state": "submitted", "expected_revision": 1, "reason": "Registrado manualmente"}
+    assert client.patch(path, json=update).status_code == 200
+    assert client.patch(path, json=update).status_code == 409
+    report = client.get(path).json()
+    cli = CliRunner().invoke(app, ["--db", str(database), "applications", "show", identifier])
+    assert cli.exit_code == 0 and json.loads(cli.output) == report
+    assert client.get("/api/applications?state=submitted").json()["total"] == 1
+    assert client.get("/api/applications/missing").status_code == 404
+    assert client.get("/applications").status_code == 200
+    assert client.get("/applications.js").status_code == 200

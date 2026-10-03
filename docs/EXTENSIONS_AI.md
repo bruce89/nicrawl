@@ -1,6 +1,6 @@
 # Extensiones y posible rama de AI
 
-Estado: I6 implementó el baseline de reglas y estado personal. El usuario prefiere una UI desacoplada para I7 y extensibilidad futura para agentes; ambas siguen sin implementar. AI sigue como experimento opcional posterior.
+Estado al 2026-09-30: I6 implementó reglas y estado personal; I7 implementó UI y API locales. I8 implementa herramientas MCP de lectura para agentes, con [contrato](AGENT_TOOLS.md) y demo sin modelo; alcance y hitos posteriores en [NEXT_STEPS](NEXT_STEPS.md). AI sigue como experimento opcional posterior.
 
 ## Baseline antes de modelos
 
@@ -12,7 +12,7 @@ Dataset de evaluación personal aún propuesto: 50 ofertas sintéticas o permiti
 
 `JobEnricher.enrich(job, preferences) -> EnrichmentResult` sería un puerto de aplicación futuro. Primero implementación de reglas, después modelo opcional. Las anotaciones derivadas se guardan aparte: `job_key`, huella de entrada, versión de reglas/modelo, evidencia, estado, tiempos y costo si aplica. No sobrescriben el texto original.
 
-No crear ahora servidor HTTP, cola, sistema de plugins ni base vectorial para reservar esta posibilidad. Una interfaz pequeña en el momento de tener dos implementaciones es suficiente. [ADR-005](adr/005-extension-boundary.md).
+I7 ya dispone de un servidor HTTP para la UI. No hace falta añadir otra capa HTTP, cola, sistema de plugins o base vectorial solo para reservar esta posibilidad. Una interfaz pequeña en el momento de tener dos implementaciones es suficiente. [ADR-005](adr/005-extension-boundary.md).
 
 ## Experimentos concretos
 
@@ -36,3 +36,7 @@ La adquisición debe seguir funcionando cuando el modelo falle. Los resultados A
 ## Conexión con ForeKast
 
 El aprendizaje común es separar datos observados, reglas deterministas y explicación generada. Ambos proyectos pueden comparar contratos de enriquecimiento y evaluación, pero no hay necesidad de conectarlos en runtime ni compartir una base. Primero demostrar valor en cada dominio.
+
+## I9
+
+Perfiles, filtro de título y muestras fijas implementados sin modelos. Las etiquetas manuales y los límites de incertidumbre permiten evaluar futuros cambios; no se infiere relevancia a partir de favoritos. [Contrato](SAVED_SEARCHES.md).

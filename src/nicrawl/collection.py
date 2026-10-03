@@ -64,7 +64,7 @@ def collect(
                 transport=transport,
                 verify=ssl.create_default_context(),
                 headers={
-                    "User-Agent": "nicrawl/0.7.0 (personal learning collector)",
+                    "User-Agent": "nicrawl/0.10.0 (personal learning collector)",
                     "Accept": "application/json",
                 },
                 follow_redirects=False,

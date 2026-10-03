@@ -1,6 +1,6 @@
-# Guía rápida: evaluar I6 para diseñar I7
+# Guía rápida: comparar rank vs list
 
-**Objetivo:** comprobar si el orden de `rank` te ayuda a encontrar ofertas útiles más rápido que el orden por descubrimiento de `list`. No buscamos demostrar que el puntaje predice contratación ni que una oferta remota acepta postulaciones desde Argentina. La UI local ya es la dirección preferida para I7; esta evaluación **orienta qué mostrar y facilitar en ella**, sin bloquear técnicamente el corte ni aprobarlo automáticamente.
+**Objetivo:** comprobar si el orden de `rank` te ayuda a encontrar ofertas útiles más rápido que el orden por descubrimiento de `list`. No buscamos demostrar que el puntaje predice contratación ni que una oferta remota acepta postulaciones desde Argentina. La UI local de I7 ya está implementada; esta evaluación orienta sus mejoras y aporta casos para las herramientas de agentes de I8. **`rank` ordena, `list` muestra el orden de descubrimiento y `mark` guarda una decisión personal**: el experimento compara los dos primeros.
 
 ## 1. Leer una oferta sin perderse en el JSON
 
@@ -9,6 +9,8 @@ En tu salida de `show 'greenhouse%3Agitlab:8592950002'`, `job` pertenece a GitLa
 Para ver solo lo esencial de cualquier aviso en PowerShell:
 
 ```powershell
+Set-Location C:\Bruze\nicrawl
+$nicrawl = '.\.venv\Scripts\nicrawl.exe'
 $key = 'greenhouse%3Agitlab:8592950002'
 $detalle = & $nicrawl show $key | ConvertFrom-Json
 $detalle.job | Select-Object job_key,title,company,location_raw,work_mode,source_url
@@ -55,7 +57,7 @@ $detalle.job | Select-Object job_key,title,company,location_raw,work_mode,source
 $detalle.personal
 ```
 
-Hoy la superficie pública operable desde terminal es la **CLI**, que devuelve JSON; `ConvertFrom-Json` lo transforma en objetos de PowerShell para practicar el contrato de datos. Una API HTTP local para la futura UI aún no está implementada. Si además querés guardar una decisión personal sobre esa oferta, esta operación sí escribe en tu base:
+La **CLI** devuelve JSON; `ConvertFrom-Json` lo transforma en objetos de PowerShell para practicar el contrato de datos. I7 también ofrece una API HTTP local: el [recorrido UI/API/CLI](15-local-ui-api.md) muestra cómo comparar las interfaces. Si además querés guardar una decisión personal sobre esa oferta, esta operación sí escribe en tu base:
 
 ```powershell
 & $nicrawl mark $key --state favorite --note 'Revisar requisitos de residencia'
@@ -90,7 +92,7 @@ Para el aviso GitLab del ejemplo, una anotación razonable sería `incierto` **r
 
 Contá `útiles confirmadas entre los primeros 10 / 10` para cada orden (precisión@10) e informá por separado cuántas quedaron `inciertas`. Si hay menos de diez candidatos, usá el número disponible y anotá el denominador. Mirá además cuántas ofertas etiquetadas `útil` quedaron fuera de los primeros diez de `rank`. Dos o tres ejemplos concretos de falsos positivos y omisiones explican más que un puntaje aislado. Probá **un solo cambio** —por ejemplo `--fields title,tags` para quitar descripción— y repetí el cálculo sobre las mismas etiquetas.
 
-Registrá en la [bitácora](07-workbook.md): objetivo, comandos/preferencias, fecha de la base, etiquetas, ambas precisiones, incertidumbres, ejemplos de errores y qué cambio probaste. La dirección preferida para I7 es una **UI local** separada de la lógica, manteniendo la CLI usable; este ejercicio ayuda a decidir qué filtros, razones, dudas y estados debe mostrar. Si las reglas fallan por matices de texto que ya etiquetaste, conservá esos casos para un experimento AI posterior. Si el problema es falta de ofertas relevantes, también habrá que revisar fuentes o filtros. El [roadmap](../docs/ROADMAP.md) registra la dirección y la futura extensión para agentes; todavía no son implementaciones aprobadas.
+Registrá en la [bitácora](07-workbook.md): objetivo, comandos/preferencias, fecha de la base, etiquetas, ambas precisiones, incertidumbres, ejemplos de errores y qué cambio probaste. I7 ya ofrece una **UI local** separada de la lógica, manteniendo la CLI usable; este ejercicio ayuda a decidir qué filtros, razones, dudas y estados mejorar. Si las reglas fallan por matices de texto que ya etiquetaste, conservá esos casos para un experimento AI posterior. Si el problema es falta de ofertas relevantes, también habrá que revisar fuentes o filtros. El [roadmap](../docs/ROADMAP.md) registra I7 como implementado e I8 como próximo corte de agentes, cuya implementación sigue pendiente.
 
 ## Si algo no cuadra
 

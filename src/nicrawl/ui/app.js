@@ -47,16 +47,17 @@ function setMode(mode) {
 function parameters() {
   const data = new FormData(form);
   const params = new URLSearchParams();
-  for (const name of ['query', 'company', 'source', 'location_text']) {
+  for (const name of ['query', 'title_query', 'company', 'source', 'location_text']) {
     const value = String(data.get(name) || '').trim();
     if (value) params.set(name, value);
   }
-  params.set('limit', '50');
+  params.set('limit', String(data.get('limit') || '50'));
   if (state.mode === 'rank') {
     for (const term of terms(String(data.get('want') || ''))) params.append('want', term);
     for (const term of terms(String(data.get('avoid') || ''))) params.append('avoid', term);
     const mode = String(data.get('mode') || '');
     if (mode) params.set('mode', mode);
+    params.set('fields', String(data.get('fields') ?? 'title,tags,description'));
     if (document.querySelector('#include-dismissed').checked) params.set('include_dismissed', 'true');
     if (!params.has('want') && !params.has('avoid') && !mode) {
       throw new Error('Para priorizar, indicá al menos un interés, algo a evitar o una modalidad.');
@@ -169,6 +170,24 @@ function renderDetail(report) {
     }
   } catch (_error) { /* La fuente se conserva en el JSON; no crear un enlace inválido. */ }
   detail.append(element('p', 'hint', '“Remoto” no confirma elegibilidad geográfica. Verificá el aviso vigente.'));
+  const track = element('button', 'save', 'Crear seguimiento');
+  track.type = 'button';
+  const trackingStatus = element('p', 'helper');
+  trackingStatus.setAttribute('role', 'status');
+  track.addEventListener('click', async () => {
+    track.disabled = true;
+    try {
+      const result = await api('/api/applications', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({job_key: job.job_key}),
+      });
+      const link = element('a', 'origin-link', result.created ? 'Borrador creado · ver seguimiento' : 'Ya existe · ver seguimiento');
+      link.href = `/applications#${encodeURIComponent(result.application.id)}`;
+      trackingStatus.replaceChildren(link);
+    } catch (error) { trackingStatus.textContent = error.message; }
+    finally { track.disabled = false; }
+  });
+  detail.append(track, trackingStatus);
 
   if (state.mode === 'rank' && state.report) {
     const result = state.report.results.find(item => item.job.job_key === job.job_key);
@@ -265,4 +284,68 @@ detail.addEventListener('submit', async event => {
   }
 });
 
+const savedSelect = document.querySelector('#saved-search');
+const savedStatus = document.querySelector('#saved-status');
+
+async function loadSavedOptions(selected = '') {
+  const book = await api('/api/searches');
+  savedSelect.replaceChildren();
+  const placeholder = element('option', '', 'Elegí una búsqueda…');
+  placeholder.value = '';
+  savedSelect.append(placeholder);
+  for (const profile of book.searches) {
+    const option = element('option', '', profile.name);
+    option.value = profile.name;
+    savedSelect.append(option);
+  }
+  savedSelect.value = selected;
+}
+
+document.querySelector('#load-search').addEventListener('click', async () => {
+  try {
+    if (!savedSelect.value) throw new Error('Elegí una búsqueda guardada.');
+    const profile = await api(`/api/searches/${encodeURIComponent(savedSelect.value)}`);
+    for (const name of ['query', 'title_query', 'company', 'source', 'location_text', 'limit', 'mode']) {
+      form.elements.namedItem(name).value = profile[name] ?? '';
+    }
+    for (const name of ['want', 'avoid', 'fields']) {
+      form.elements.namedItem(name).value = profile[name].join(',');
+    }
+    document.querySelector('#include-dismissed').checked = profile.include_dismissed;
+    document.querySelector('#search-name').value = profile.name;
+    document.querySelector('#search-goal').value = profile.goal;
+    document.querySelector('#replace-search').checked = false;
+    savedStatus.textContent = `Cargada: ${profile.name}. ${profile.goal}`;
+    setMode(profile.view);
+  } catch (error) { savedStatus.textContent = error.message; }
+});
+
+document.querySelector('#save-search').addEventListener('click', async event => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    const data = new FormData(form);
+    const profile = {
+      name: document.querySelector('#search-name').value.trim(),
+      goal: document.querySelector('#search-goal').value.trim(),
+      view: state.mode,
+      limit: Number(data.get('limit')),
+      mode: String(data.get('mode') || '') || null,
+      include_dismissed: document.querySelector('#include-dismissed').checked,
+    };
+    for (const name of ['query', 'title_query', 'company', 'source', 'location_text']) profile[name] = String(data.get(name) || '').trim();
+    for (const name of ['want', 'avoid', 'fields']) profile[name] = terms(String(data.get(name) || ''));
+    await api('/api/searches', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile, replace: document.querySelector('#replace-search').checked }),
+    });
+    await loadSavedOptions(profile.name);
+    document.querySelector('#replace-search').checked = false;
+    savedStatus.textContent = `Guardada: ${profile.name}. Disponible también desde la terminal.`;
+  } catch (error) { savedStatus.textContent = error.message; }
+  finally { button.disabled = false; }
+});
+
+loadSavedOptions().catch(error => { savedStatus.textContent = error.message; });
 loadResults();

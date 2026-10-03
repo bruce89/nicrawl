@@ -1,6 +1,6 @@
 # Fichas de las primeras iteraciones
 
-**Actualizado 2026-09-28: I0–I7 aprobados e implementados técnicamente; I8+ pendiente de aprobación.** Las fichas conservan el alcance de referencia. Evidencia en [VALIDATION](../VALIDATION.md); ejercicios personales aún pendientes.
+**Actualizado 2026-09-30: I0–I10 aprobados e implementados técnicamente; I11+ pendiente de aprobación.** Las fichas conservan el alcance de referencia. Evidencia en [VALIDATION](../VALIDATION.md); ejercicios personales aún pendientes.
 
 ## I0 — base reproducible
 
@@ -108,8 +108,24 @@ Entregas: UI en navegador y [API HTTP local](API.md) iniciadas con `serve`, list
 
 **Estado:** aprobado el 2026-09-28 (“Genial, entonces arrancamos I7?”), implementado y verificado. Evaluación personal I6 pendiente.
 
-**Extensión posterior:** diseñar herramientas de lectura acotadas para agentes sobre esos mismos casos de uso, con contratos, límites y evidencia. Escrituras, recolección o acciones externas requieren autorización y diseño específicos. Ver [roadmap](ROADMAP.md) y [extensiones](EXTENSIONS_AI.md). I8+ aún no está aprobado ni implementado.
+**Extensión posterior:** diseñar herramientas de lectura acotadas para agentes sobre esos mismos casos de uso, con contratos, límites y evidencia. Escrituras, recolección o acciones externas requieren autorización y diseño específicos. Ver [roadmap](ROADMAP.md) y [extensiones](EXTENSIONS_AI.md). I8 implementa esa extensión de lectura; I9 implementa perfiles/evaluación; I10 implementa seguimiento; I11+ queda pendiente.
+
+## I8 — herramientas de lectura para agentes
+
+Buscar ofertas, leer detalle y consultar ranking mediante contratos acotados sobre los casos de uso existentes. Excluir notas privadas del DTO para agentes por defecto; demostrar equivalencia con CLI/API y límites aplicados en código. Una demo con llamadas controladas permite verificar el adaptador antes de elegir un modelo. Aceptación y aprendizaje en [NEXT_STEPS](NEXT_STEPS.md).
+
+Estado al 2026-09-30: aprobado (“Bien, vamos con I8”), implementado con MCP stdio opcional, tres herramientas y demo sin modelo. [Contrato](AGENT_TOOLS.md) y [guía](../LearnDocs/16-agent-tools.md). Los hitos de seguimiento y postulaciones asistidas son posteriores y dependen de uso real y acceso autorizado por destino.
 
 ## Regla de cierre y continuidad
 
 Cada revisión deja demo, evidencia y aprendizaje pendiente. Aprobar un bloque no aprueba automáticamente todos los siguientes. Las fichas son una propuesta de alcance y pueden ajustarse antes de implementarse; un cambio queda registrado junto con su motivo.
+
+## I9 — búsquedas guardadas y pertinencia
+
+Aprobado el 2026-09-30 (“Bien, vamos con I9”). Implementado en 0.9.0: perfiles compartidos UI/API/CLI, filtro de título, captura consistente y etiquetas/precisión con incertidumbre. Objetivo confirmado: Senior Software Engineer remoto o presencial desde Uruguay. [Contrato](SAVED_SEARCHES.md), [guía](../LearnDocs/17-saved-searches-and-relevance.md) y [ADR-012](adr/012-saved-searches-evaluation.md).
+
+La aceptación técnica cubre paridad, persistencia atómica, identidad de muestra, cambios concurrentes, privacidad y métricas sobre datos sintéticos. La muestra real queda pendiente de juicio personal; no se incorporaron nuevos boards ni se afirma mejora de relevancia medida.
+
+## I10 — seguimiento de candidaturas
+
+Aprobado el 2026-09-30 (“Vamos con I10”). Implementado en 0.10.0: aplicación separada de favoritos, altas desde oferta o referencia manual, estados con motivo/historial, deduplicación y revisión optimista; UI/API/CLI sobre el mismo servicio. [Contrato](APPLICATIONS.md), [guía](../LearnDocs/18-application-tracking.md), [ADR-013](adr/013-application-tracking.md). Sin extracción de referencias ni envíos. I11+ pendiente.

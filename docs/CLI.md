@@ -1,4 +1,4 @@
-# CLI — aplicación 0.7.0
+# CLI — aplicación 0.10.0
 
 I0–I7 implementados al 2026-09-28. Ejecutar desde C:\Bruze\nicrawl; no requiere uv global. La opción global --db va **antes** del subcomando. Default: data/nicrawl.sqlite3, relativo al directorio actual.
 
@@ -73,3 +73,19 @@ Se escribe un temporal junto al destino, se vacía a disco y se publica completo
 | 130 | Interrupción controlada de la recolección |
 
 collect y collect-all mantienen cuotas separadas por fuente en [OPERATIONS](OPERATIONS.md). `collect-all` invoca primero Remotive y luego GitLab en secuencia, aunque el primer estado sea failed/deferred. plan estima ready_at en UTC sin reservar; la recolección revalida bajo bloqueo. lab-html revisa robots.txt cada vez, como máximo dos páginas y espera dos segundos entre requests al mismo host. Leer datos guardados no consume intentos ni reinicia la política.
+
+## I8: MCP y demo
+
+- `nicrawl agent-demo`: crea datos sintéticos temporales y prueba las tres herramientas mediante un subproceso MCP, sin modelo.
+- `nicrawl --db data/nicrawl.sqlite3 agent-demo --local`: mismo recorrido sobre una base existente, en lectura.
+- `nicrawl --db data/nicrawl.sqlite3 mcp --max-calls 100`: servidor stdio para un cliente MCP; no es una consola interactiva.
+
+Requieren `uv sync --locked --extra agents`. [Contrato y límites](AGENT_TOOLS.md), [guía de comandos](../LearnDocs/16-agent-tools.md).
+
+## I9: perfiles y evaluación
+
+`nicrawl saved` agrupa save/list/show/run/delete/snapshot/label-template/evaluate. `list`, `rank` y `export` admiten además `--title-query`, combinado con el resto de filtros. [Comandos completos](SAVED_SEARCHES.md) y [recorrido con muestra local](../LearnDocs/17-saved-searches-and-relevance.md).
+
+## I10: candidaturas
+
+`nicrawl applications add/list/show/update`: crear desde `--job-key` o `--url`/`--title`/`--company`, listar por estado, consultar historial y registrar avances con `--state`, `--revision`, `--reason`. [Recorrido PowerShell](../LearnDocs/18-application-tracking.md) y [contrato](APPLICATIONS.md). Un estado submitted no envía formularios.

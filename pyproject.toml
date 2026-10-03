@@ -1,6 +1,6 @@
 [project]
 name = "nicrawl"
-version = "0.7.0"
+version = "0.10.0"
 description = "Recolector local de ofertas con dos fuentes, SQLite y laboratorios de scraping y concurrencia"
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
@@ -13,6 +13,11 @@ dependencies = [
 
 [project.scripts]
 nicrawl = "nicrawl.cli:run"
+
+[project.optional-dependencies]
+agents = [
+    "mcp>=2,<3",
+]
 
 [build-system]
 requires = ["uv_build==0.12.19"]

@@ -1,6 +1,6 @@
 # Roadmap de producto y aprendizaje
 
-Actualizado 2026-09-28: **I0–I7 aprobados e implementados técnicamente**. I8+ sigue pendiente de aprobación. Los ejercicios del usuario son una etapa de aprendizaje separada; no se presumen completados.
+Actualizado 2026-09-30: **I0–I10 aprobados e implementados técnicamente**. I11+ sigue pendiente de aprobación. Los ejercicios del usuario son una etapa de aprendizaje separada; no se presumen completados.
 
 | Corte | Entrega | Aprendizaje principal | Estado |
 | --- | --- | --- | --- |
@@ -13,7 +13,10 @@ Actualizado 2026-09-28: **I0–I7 aprobados e implementados técnicamente**. I8+
 | I5 | Experimento de concurrencia acotada y eventual scheduler | asyncio, cancelación, backpressure y operación | Laboratorio, plan y collect-all implementados; scheduler aún no instalado |
 | I6 | Ranking explicable y estados personales | Reglas de producto y evaluación | Implementado; evaluación personal pendiente |
 | I7 | UI y API locales, con CLI plenamente operable | Contratos entre presentación y casos de uso; consistencia entre interfaces | Implementado; guía y evaluación de UX disponibles |
-| I8+ | Herramientas acotadas para agentes y enriquecimiento AI opcional | Contratos, evidencia, permisos, costo y evaluación | Candidato posterior, sin aprobación |
+| I8 | Herramientas de lectura para agentes | Contratos, evidencia, proyección de datos privados y límites | Implementado: MCP stdio, demo y [contratos](AGENT_TOOLS.md) |
+| I9 | Búsquedas guardadas, filtro por título y evaluación reproducible | Perfiles, snapshots, etiquetas e incertidumbre | Implementado; [guía](../LearnDocs/17-saved-searches-and-relevance.md); evaluación personal pendiente |
+| I10 | Candidaturas y referencias manuales con historial | Identidad, transacciones y concurrencia optimista | Implementado; [guía](../LearnDocs/18-application-tracking.md) |
+| I11–I12 | Borradores y eventual envío autorizado | Pertinencia, estados, evidencia e idempotencia | Hitos propuestos; sujetos a revisión |
 
 ## Primer corte entregado
 
@@ -23,9 +26,13 @@ I0 + I1 se aprobaron como bloque y la demo funciona offline. I2 incorporó Remot
 
 La UI consume una [API local](API.md) para listar y filtrar, ver detalle/procedencia, explicar ranking y cambiar estados/notas personales. La adquisición, puntuación y persistencia permanecen en casos de uso Python compartidos con CLI. `serve` escucha solo en `127.0.0.1`, se termina con Ctrl+C y no recolecta. API y CLI tienen ejemplos PowerShell y pruebas de equivalencia. Ver [ADR-010](adr/010-local-ui-api.md) y [guía I7](../LearnDocs/15-local-ui-api.md).
 
-Una extensión posterior ofrecerá herramientas de consulta a agentes con operaciones explícitas y acotadas, empezando por búsqueda, detalle y razones del ranking. El texto externo de las ofertas sigue siendo dato no confiable. Acciones que escriben, recolectan, envían información o navegan fuera del ámbito requieren una decisión de permisos y límites por separado; no se conceden por estar disponible una interfaz de lectura. La [ficha de extensiones](EXTENSIONS_AI.md) detalla esta frontera. El experimento manual de [I6](../LearnDocs/14-i6-evaluation-quick-guide.md) sirve para definir qué necesita mostrar la UI, pero no condiciona su existencia.
+I8 ofrece herramientas de consulta a agentes con operaciones explícitas y acotadas, empezando por búsqueda, detalle y razones del ranking. El texto externo de las ofertas sigue siendo dato no confiable. Acciones que escriben, recolectan, envían información o navegan fuera del ámbito requieren una decisión de permisos y límites por separado; no se conceden por estar disponible una interfaz de lectura. La [ficha de extensiones](EXTENSIONS_AI.md) detalla esta frontera. El experimento manual de [I6](../LearnDocs/14-i6-evaluation-quick-guide.md) sirve para definir qué necesita mostrar la UI, pero no condiciona su existencia.
 
 La funcionalidad real empieza en I2. El MVP cierra con I3. I1 no se venderá como un agregador de empleo operativo: su utilidad es enseñar y verificar extracción.
+
+## Siguiente paso
+
+I10 está implementado. El siguiente corte propuesto es I11: perfil/CV y preparación asistida de borradores revisables, pendiente de aprobación. La [secuencia detallada](NEXT_STEPS.md) define aceptación y hitos hacia postulaciones asistidas, incluyendo la viabilidad de LinkedIn revisada el 2026-09-30. El experimento pendiente compara `rank` vs `list`; `mark` guarda decisiones personales.
 
 ## Candidatos posteriores
 
@@ -33,7 +40,7 @@ La funcionalidad real empieza en I2. El MVP cierra con I3. I1 no se venderá com
 | --- | --- | --- | --- |
 | Greenhouse por boards elegidos | Ofertas más pertinentes por empresa | I3 y ficha de cada fuente | Medio; múltiples ámbitos |
 | HTML de careers permitido | Practicar scraping del caso real | Selección y reglas de acceso | Medio/alto; deriva del DOM |
-| Búsquedas guardadas | Repetir filtros sin escribirlos | I3 | Bajo; mejora útil antes de AI |
+| Búsquedas guardadas | Entregado en I9: UI, API y CLI | Evaluación de uso | Mejoras según evidencia |
 | Deduplicación entre fuentes | Unificar avisos repetidos | I4 y corpus de evaluación | Alto; riesgo de fusionar puestos distintos |
 | Scheduler local | Reducir trabajo manual | Cuotas durables y recuperación | Medio; Windows dormido y corridas superpuestas |
 | Alertas opt-in | Enterarse de novedades | Scheduler y deduplicación de eventos | Medio; configurar destino y envío explícitamente |

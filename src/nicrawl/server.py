@@ -9,13 +9,15 @@ from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, unquote, urlsplit
 
-from nicrawl import queries
+from nicrawl import applications, queries, saved_searches
 from nicrawl.personal import Preferences, mark, rank
 from nicrawl.storage import StorageError
 
 HOST = "127.0.0.1"
 SOURCES = {"", "remotive", "greenhouse:gitlab"}
 STATIC = {
+    "/applications": ("applications.html", "text/html; charset=utf-8"),
+    "/applications.js": ("applications.js", "text/javascript; charset=utf-8"),
     "/": ("index.html", "text/html; charset=utf-8"),
     "/app.js": ("app.js", "text/javascript; charset=utf-8"),
     "/style.css": ("style.css", "text/css; charset=utf-8"),
@@ -43,6 +45,7 @@ def _filters(parameters: dict[str, list[str]]) -> queries.Filters:
         _single(parameters, "company"),
         source,
         _single(parameters, "location_text"),
+        _single(parameters, "title_query"),
     )
 
 
@@ -132,7 +135,11 @@ def create_server(database: Path, port: int = 8765) -> ThreadingHTTPServer:
             return parameters
 
         def _error(self, error: Exception) -> None:
-            if isinstance(error, StorageError):
+            if isinstance(error, applications.NotFound):
+                status = HTTPStatus.NOT_FOUND
+            elif isinstance(error, applications.Conflict):
+                status = HTTPStatus.CONFLICT
+            elif isinstance(error, StorageError):
                 status = (
                     HTTPStatus.NOT_FOUND
                     if str(error).startswith(("Oferta no encontrada", "No hay base local"))
@@ -159,9 +166,33 @@ def create_server(database: Path, port: int = 8765) -> ThreadingHTTPServer:
                     if route.query:
                         raise ValueError("health no acepta parámetros.")
                     self._json(HTTPStatus.OK, {"status": "ok", "database": str(database)})
+                elif route.path == "/api/searches" and not route.query:
+                    self._json(HTTPStatus.OK, saved_searches.list_saved(database).model_dump())
+                elif route.path == "/api/applications":
+                    params = self._parameters(route.query, {"state", "limit"})
+                    self._json(
+                        HTTPStatus.OK,
+                        applications.list_applications(
+                            database, state=_single(params, "state"), limit=_limit(params)
+                        ),
+                    )
+                elif route.path.startswith("/api/applications/") and not route.query:
+                    self._json(
+                        HTTPStatus.OK,
+                        applications.show(database, route.path[len("/api/applications/") :]),
+                    )
+                elif route.path.startswith("/api/searches/") and not route.query:
+                    name = route.path[len("/api/searches/") :]
+                    if name.endswith("/run"):
+                        self._json(HTTPStatus.OK, saved_searches.run_saved(database, name[:-4]))
+                    else:
+                        self._json(
+                            HTTPStatus.OK, saved_searches.get_saved(database, name).model_dump()
+                        )
                 elif route.path == "/api/jobs":
                     params = self._parameters(
-                        route.query, {"query", "company", "source", "location_text", "limit"}
+                        route.query,
+                        {"query", "title_query", "company", "source", "location_text", "limit"},
                     )
                     self._json(
                         HTTPStatus.OK,
@@ -172,6 +203,7 @@ def create_server(database: Path, port: int = 8765) -> ThreadingHTTPServer:
                         route.query,
                         {
                             "query",
+                            "title_query",
                             "company",
                             "source",
                             "location_text",
@@ -204,6 +236,22 @@ def create_server(database: Path, port: int = 8765) -> ThreadingHTTPServer:
                 self._error(error)
 
         def do_PATCH(self) -> None:
+            if urlsplit(self.path).path.startswith("/api/applications/"):
+                self._application_write(create=False)
+                return
+            # Consumir el cuerpo acotado antes de rechazar cabeceras: cerrar con
+            # bytes pendientes puede provocar un TCP reset en Windows.
+            self.connection.settimeout(2)
+            try:
+                length = int(self.headers.get("Content-Length", ""))
+                if self.headers.get("Transfer-Encoding") or not 1 <= length <= 4096:
+                    raise ValueError("Cuerpo fuera de límite (1–4096 bytes).")
+                raw_body = self.rfile.read(length)
+                if len(raw_body) != length:
+                    raise ValueError("Cuerpo incompleto.")
+            except (OSError, ValueError) as error:
+                self._error(error)
+                return
             if not self._host_allowed() or not self._origin_allowed():
                 return
             route = urlsplit(self.path)
@@ -227,10 +275,7 @@ def create_server(database: Path, port: int = 8765) -> ThreadingHTTPServer:
                 )
                 return
             try:
-                length = int(self.headers.get("Content-Length", ""))
-                if not 1 <= length <= 4096:
-                    raise ValueError("Cuerpo fuera de límite (1–4096 bytes).")
-                body = json.loads(self.rfile.read(length))
+                body = json.loads(raw_body)
                 if not isinstance(body, dict) or set(body) - {"state", "note", "clear_note"}:
                     raise ValueError("Campos permitidos: state, note, clear_note.")
                 state = body.get("state")
@@ -249,8 +294,76 @@ def create_server(database: Path, port: int = 8765) -> ThreadingHTTPServer:
             except (StorageError, sqlite3.Error, OSError, ValueError, UnicodeError) as error:
                 self._error(error)
 
+        def do_PUT(self) -> None:
+            self.connection.settimeout(2)
+            try:
+                length = int(self.headers.get("Content-Length", ""))
+                if self.headers.get("Transfer-Encoding") or not 1 <= length <= 8192:
+                    raise ValueError("Cuerpo fuera de límite (1–8192 bytes).")
+                raw_body = self.rfile.read(length)
+                if len(raw_body) != length:
+                    raise ValueError("Cuerpo incompleto.")
+                if not self._host_allowed() or not self._origin_allowed():
+                    return
+                if self.path != "/api/searches":
+                    self._json(HTTPStatus.NOT_FOUND, {"error": "Ruta no encontrada."})
+                    return
+                if (
+                    self.headers.get("Content-Type", "").split(";")[0].strip().lower()
+                    != "application/json"
+                ):
+                    self._json(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, {"error": "Se requiere JSON."})
+                    return
+                body = json.loads(raw_body)
+                if not isinstance(body, dict) or set(body) != {"profile", "replace"}:
+                    raise ValueError("Campos requeridos: profile, replace.")
+                if not isinstance(body["replace"], bool):
+                    raise ValueError("replace debe ser booleano.")
+                profile = saved_searches.SavedSearch.model_validate(body["profile"])
+                saved_searches.save(database, profile, replace=body["replace"])
+                self._json(HTTPStatus.OK, profile.model_dump())
+            except (OSError, ValueError) as error:
+                self._error(error)
+
         def do_OPTIONS(self) -> None:
             self._json(HTTPStatus.METHOD_NOT_ALLOWED, {"error": "OPTIONS no disponible."})
+
+        def _application_write(self, *, create: bool) -> None:
+            self.connection.settimeout(2)
+            try:
+                length = int(self.headers.get("Content-Length", ""))
+                if self.headers.get("Transfer-Encoding") or not 1 <= length <= 16384:
+                    raise ValueError("Cuerpo fuera de límite (1–16384 bytes).")
+                raw = self.rfile.read(length)
+                if len(raw) != length:
+                    raise ValueError("Cuerpo incompleto.")
+                if not self._host_allowed() or not self._origin_allowed():
+                    return
+                route = urlsplit(self.path)
+                if route.query or (create and route.path != "/api/applications"):
+                    self._json(HTTPStatus.NOT_FOUND, {"error": "Ruta no encontrada."})
+                    return
+                if (
+                    self.headers.get("Content-Type", "").split(";")[0].strip().lower()
+                    != "application/json"
+                ):
+                    self._json(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, {"error": "Se requiere JSON."})
+                    return
+                body = json.loads(raw)
+                if create:
+                    result = applications.create(database, applications.Create.model_validate(body))
+                else:
+                    result = applications.update(
+                        database,
+                        route.path[len("/api/applications/") :],
+                        applications.Update.model_validate(body),
+                    )
+                self._json(HTTPStatus.OK, result)
+            except (StorageError, sqlite3.Error, OSError, ValueError) as error:
+                self._error(error)
+
+        def do_POST(self) -> None:
+            self._application_write(create=True)
 
         def log_message(self, format: str, *args: object) -> None:
             return

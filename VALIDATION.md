@@ -1,4 +1,44 @@
-# Validación — I7
+# Validación — I10
+
+## Evidencia técnica I10 (2026-09-30)
+
+Aprobado con “Vamos con I10”. Aplicación **0.10.0**: candidaturas vinculadas a ofertas o referencias manuales, UUID/identidad, estados con historial y revisión optimista. UI/API/CLI comparten servicio. [Contrato](docs/APPLICATIONS.md), [guía](LearnDocs/18-application-tracking.md), [ADR-013](docs/adr/013-application-tracking.md).
+
+**197 pruebas pasan**: 178 anteriores, 18 casos del seguimiento y un caso API. Ruff, formato y mypy estricto pasan. Se probaron entradas/URLs inválidas, clave codificada, duplicados por URL/clave, normalización de referencias LinkedIn sin red, historial de correcciones/reapertura, privacidad frente a agentes, fallo de inserción de evento con rollback de estado, altas simultáneas y conflicto de revisión entre escritores. Base ajena rechazada sin cambios, ausencia de archivos en lecturas y paridad API/CLI comprobadas.
+
+Prueba UI con colección ficticia en work/i10-ui.sqlite3: referencia manual creada, estado submitted registrado con motivo de simulación, historial con dos eventos visible y alta vinculada a oferta desde “Crear seguimiento”. No se abrió ni descargó la URL de LinkedIn usada como ejemplo. Ninguno de estos registros pertenece al almacén real del usuario.
+
+Wheel y sdist construidos offline. Verificados módulos y assets applications.html/applications.js dentro del wheel; instalación no editable en work/i10-clean-env sin extra MCP. Ejecutado desde fuera del repositorio: alta manual, update a interview, historial y reintento con URL utm duplicada. Las lecturas sobre la base real devolvieron cero candidaturas y no crearon el archivo personal. La base de ofertas mantuvo su SHA-256.
+
+No se migró SQLite de ofertas, no se recolectaron datos, no se crearon candidaturas reales y no se enviaron postulaciones. I11 pendiente de aprobación; evaluaciones personales I6/I9 pendientes.
+
+## Evidencia técnica I9 (2026-09-30)
+
+Aprobado con “Bien, vamos con I9”. El usuario precisó Senior Software Engineer, remoto o presencial desde Uruguay. Aplicación **0.9.0**: perfiles compartidos entre CLI/API/UI, filtro adicional por título, muestra consistente y evaluación de etiquetas humanas. [Contrato](docs/SAVED_SEARCHES.md), [ADR-012](docs/adr/012-saved-searches-evaluation.md), [guía práctica](LearnDocs/17-saved-searches-and-relevance.md).
+
+**178 pruebas pasan** (159 anteriores, 18 casos de perfiles/evaluación y un caso API adicional). Ruff y mypy estricto pasan. Se verificaron colisiones/reemplazo, configuración inválida, fallo atómico y bloqueo de escritores, lectura sin crear archivos, paridad CLI/API/agentes del filtro de título, instantánea estable cuando otra operación cambia la base viva, exclusión de notas, hash de muestra, etiquetas duplicadas/ajenas y métricas con pendientes, desconocidos, muestras vacías o menos de k candidatos. La suite usa fixtures y no consulta fuentes externas.
+
+Se creó el perfil local `senior-uy`, con query Software, title_query Engineer, want Senior/Software Engineer y objetivo explícito Uruguay. No se impuso un filtro literal de país o modalidad. Sobre las 219 ofertas existentes: 102 candidatos (98 GitLab, 4 Remotive); unión de top-10 de ambos órdenes: 20 ofertas, todas GitLab. Quedaron `data/i9-senior-uy-v1.json` y `data/i9-senior-uy-v1-labels.json`, con etiquetas pending. La precisión inicial es null, no cero. No se declara utilidad demostrada ni cobertura suficiente de Uruguay. Una captura exploratoria anterior sin filtro de título quedó conservada con el nombre i9-senior-uy-snapshot.json; la guía usa exclusivamente la v1 final.
+
+UI abierta en navegador local: carga de senior-uy, filtros y preferencias visibles, consulta de 102 candidatos, guardado de un perfil temporal y rechazo al repetir el nombre sin reemplazo. El perfil de prueba se retiró después por CLI; senior-uy se conserva. Los controles de guardado se agruparon en una sección plegable para mantener accesibles los filtros. No se modificaron notas ni estados de ofertas.
+
+Wheel y sdist 0.9.0 construidos offline. Wheel instalado sin modo editable en work/i9-clean-env, **sin extra MCP**, ejecutado desde fuera del repositorio: versión, saved run, snapshot, label-template y evaluate completos. La evaluación del wheel con k=3 devolvió seis ofertas en la unión y tres pendientes por orden. SHA-256 de la base SQLite sin cambios. Solo se escribieron perfiles/archivos de evaluación; no hubo migración, recolección ni consumo de cuotas.
+
+I10 pendiente de aprobación. El usuario aún debe etiquetar la muestra; nuevos boards se seleccionarán según cobertura y motivos observados, sin interpretar la ausencia de datos como elegibilidad.
+
+## Evidencia técnica I8 (2026-09-30)
+
+El usuario aprobó I8 con “Bien, vamos con I8”. Aplicación **0.8.0**: tres herramientas MCP de lectura (`search_jobs`, `get_job`, `rank_jobs`), SDK opcional y demo con cliente/subproceso real sin modelo ni API key. [Contrato](docs/AGENT_TOOLS.md), [ADR-011](docs/adr/011-agent-tools-mcp.md) y [guía práctica](LearnDocs/16-agent-tools.md).
+
+**159 pruebas pasan**: 143 previas y 16 casos nuevos. Ruff, formato y mypy estricto pasan. Se comprueban paridad CLI, claves codificadas, campos desconocidos y tipos inválidos, exclusión de notas y futuros campos internos, Unicode, recortes explícitos, presupuesto de llamadas y base intacta. Los tests de MCP cubren descubrimiento, esquemas, errores y transporte stdio real. Se usan bases sintéticas y no se consulta a proveedores externos.
+
+La primera ejecución completa detectó un TCP reset intermitente en Windows al rechazar un PATCH de I7 con cuerpo pendiente. El servidor ahora consume el cuerpo dentro del límite de 4096 bytes y con timeout antes de rechazar cabeceras. La suite completa pasó después de la corrección; además se reforzó y volvió a pasar la prueba I7 repitiendo diez rechazos con cuerpo y verificando que no modifican el estado personal.
+
+`agent-demo` devolvió dos ofertas Python sintéticas, descubrió exactamente tres herramientas y no exportó el marcador de nota privada. `agent-demo --local` encontró **41 candidatos Python**; se compararon las primeras cinco claves de lista/ranking y sus puntajes con CLI, sin diferencias. SHA-256 de `data/nicrawl.sqlite3` idéntico antes/después. No hubo migración, colección ni consumo de cuotas. Las llamadas de la demo son predeterminadas; esto no evalúa razonamiento de un modelo ni relevancia personal.
+
+Wheel y sdist 0.8.0 construidos offline. Wheel verificado con módulos MCP y los tres assets de UI. Instalación sin modo editable en `work/i8-clean-env`, ejecutada desde fuera del repositorio: CLI base y lista funcionan sin MCP; `agent-demo` indica cómo instalar el extra y sale con código 1. Tras instalar `[agents]`, la demo stdio completa funciona. La instalación de dependencias utilizó TLS del sistema; el runtime de demo es local.
+
+I9+ permanece pendiente de aprobación. La evaluación manual `rank` vs `list` sigue pendiente. No se registró el servidor en un cliente personal, ni se enviaron datos a un modelo, ni se publicaron candidaturas. Las evidencias anteriores se conservan como historial de cada corte.
 
 ## Evidencia técnica I7 (2026-09-28)
 

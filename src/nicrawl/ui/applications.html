@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>nicrawl · candidaturas</title>
+  <link rel="stylesheet" href="/style.css"><script src="/applications.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><div class="brand">nicrawl</div><a href="/">Explorar ofertas</a><span class="local-pill">Solo en este equipo</span></header>
+  <main class="shell">
+    <section class="intro"><p class="eyebrow">REGISTRAR · REVISAR · CONTINUAR</p><h1>Tus candidaturas, con historia.</h1><p>Registrá lo que hiciste y tus próximos pasos. Guardar “Enviada” no envía una postulación.</p></section>
+    <div class="workspace">
+      <aside class="filters">
+        <h2>Referencia manual</h2><p class="helper">Podés pegar una URL de LinkedIn u otro sitio. No descargamos su página.</p>
+        <form id="reference-form">
+          <label for="reference-url">URL del aviso</label><input id="reference-url" type="url" maxlength="2048" required>
+          <label for="reference-title">Puesto</label><input id="reference-title" type="text" maxlength="400" required>
+          <label for="reference-company">Empresa</label><input id="reference-company" type="text" maxlength="200" required>
+          <label for="reference-reason">Nota inicial (opcional)</label><textarea id="reference-reason" maxlength="2000"></textarea>
+          <button class="save" type="submit">Crear borrador local</button>
+        </form>
+        <p id="create-status" role="status" class="helper" aria-live="polite"></p>
+        <p class="helper">Para una oferta de tu colección, usá “Crear seguimiento” en su detalle.</p>
+      </aside>
+      <section class="results" aria-label="Candidaturas">
+        <div class="results-head"><h2>Seguimiento</h2><span id="application-count" class="count">—</span></div>
+        <div class="application-filter"><label for="state-filter">Estado</label><select id="state-filter"><option value="">Todos</option><option value="draft">Borrador</option><option value="submitted">Enviada</option><option value="interview">Entrevista</option><option value="closed">Cerrada</option></select><button id="refresh-applications" class="save" type="button">Actualizar lista</button></div>
+        <p id="application-status" role="status" class="result-meta" aria-live="polite"></p>
+        <div id="application-cards" class="cards"></div>
+      </section>
+      <aside id="application-detail" class="detail" aria-label="Historial de candidatura"><h2>Elegí una candidatura</h2><p>Su estado e historial aparecen acá.</p></aside>
+    </div>
+  </main>
+</body>
+</html>

@@ -62,3 +62,15 @@ Medir las metas de rendimiento con 10.000 ofertas sintéticas y documentar máqu
 ## Definition of done por corte
 
 Demostración reproducible; escenarios del corte cumplidos; instrucciones con comandos reales; limitaciones anotadas; ADR actualizado a aceptado solo si se implementó; ejercicio de aprendizaje con evidencia y una modificación explicada por el usuario. No iniciar el corte siguiente automáticamente: respetar el alcance aprobado.
+
+## Escenarios I8
+
+`tests/test_i8_agents.py` comprueba paridad CLI, exclusión de notas/campos futuros, claves codificadas, entradas estrictas, límites Unicode y de llamadas, errores seguros y hash de base intacto. Incluye cliente MCP en proceso y subproceso stdio real. El texto externo malicioso queda como dato; no se afirma resistencia de un modelo que todavía no existe. Ver [contrato](AGENT_TOOLS.md).
+
+## Escenarios I9
+
+`test_i9_saved.py`: 18 casos de perfiles, validación, fallo atómico/bloqueo, instantánea frente a cambios concurrentes, exclusión de notas, identidad/etiquetas, muestras vacías/pequeñas y filtro por título. `test_i7_server.py` añade paridad de perfiles API/CLI y permisos de escritura. La relevancia real sigue necesitando juicio del usuario.
+
+## Escenarios I10
+
+18 casos en test_i10_applications.py y un caso de API adicional: contratos/URL, identidad, notas separadas, instantánea de título, rollback, concurrencia real entre escritores, revisión obsoleta, base ajena y comandos. Los tests prueban registro local, no éxito de postulaciones externas.

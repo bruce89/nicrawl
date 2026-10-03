@@ -1,6 +1,6 @@
-# Entorno e implementación — I0 a I7
+# Entorno e implementación — I0 a I10
 
-Verificado en Windows el 2026-09-28. Aplicación **0.7.0**. Python 3.14.6 ya estaba instalado. uv está aislado dentro del proyecto; no se modificó PATH ni se instalaron dependencias globales.
+Verificado en Windows el 2026-09-30. Aplicación **0.10.0**. Python 3.14.6 ya estaba instalado. uv está aislado dentro del proyecto; no se modificó PATH ni se instalaron dependencias globales.
 
 ## Preparar una copia limpia
 
@@ -69,4 +69,16 @@ Módulos pequeños: domain, collection, acquisition, storage, locking, CLI, dos 
 
 La configuración actual habilita dos fuentes fijas (Remotive/software-dev y Greenhouse/GitLab), con políticas fijas por fuente en código. `nicrawl.toml`, scheduler instalado, logs rotados y purga automática siguen fuera de este corte. No hay flag force para saltar cuotas ni desbloqueo automático de fuentes detenidas.
 
-I3 implementa queries.py y exporting.py: consultas en snapshot read-only, filtros compartidos, historial y archivos atómicos. Guía [I3](../LearnDocs/10-local-search-export.md). I4 agrega [greenhouse.py](../src/nicrawl/sources/greenhouse.py) y [html_lab.py](../src/nicrawl/html_lab.py); guía [I4](../LearnDocs/11-second-source-html-lab.md). I5 agrega planning.py y concurrency_lab.py: plan local, collect-all secuencial y comparación asíncrona sintética. Guía [I5](../LearnDocs/12-concurrency-and-planning.md). I6 agrega [personal.py](../src/nicrawl/personal.py), `rank` y `mark`, con esquema 2 y guía [I6](../LearnDocs/13-ranking-and-personal-state.md). I7 agrega [server.py](../src/nicrawl/server.py), UI local y [API](API.md), con [guía I7](../LearnDocs/15-local-ui-api.md). I8+ pendiente de aprobación. Repositorio Git: [bruce89/nicrawl](https://github.com/bruce89/nicrawl).
+I3 implementa queries.py y exporting.py: consultas en snapshot read-only, filtros compartidos, historial y archivos atómicos. Guía [I3](../LearnDocs/10-local-search-export.md). I4 agrega [greenhouse.py](../src/nicrawl/sources/greenhouse.py) y [html_lab.py](../src/nicrawl/html_lab.py); guía [I4](../LearnDocs/11-second-source-html-lab.md). I5 agrega planning.py y concurrency_lab.py: plan local, collect-all secuencial y comparación asíncrona sintética. Guía [I5](../LearnDocs/12-concurrency-and-planning.md). I6 agrega [personal.py](../src/nicrawl/personal.py), `rank` y `mark`, con esquema 2 y guía [I6](../LearnDocs/13-ranking-and-personal-state.md). I7 agrega [server.py](../src/nicrawl/server.py), UI local y [API](API.md), con [guía I7](../LearnDocs/15-local-ui-api.md). I8 agrega herramientas MCP opcionales; I11+ pendiente de aprobación. Repositorio Git: [bruce89/nicrawl](https://github.com/bruce89/nicrawl).
+
+## Extra de agentes
+
+`uv sync --locked --extra agents` instala MCP 2.2.0 además del entorno base. Usar ese extra para ejecutar toda la suite y mypy sobre el adaptador opcional. Sin extra, las pruebas MCP se omiten y la CLI básica sigue disponible. [Instalación, demo y configuración](AGENT_TOOLS.md).
+
+## I9
+
+No agrega dependencias ni migra SQLite. Los perfiles viven en `<base>.searches.json`. La demo de evaluación se opera desde `saved`; [guía](../LearnDocs/17-saved-searches-and-relevance.md). La muestra local y etiquetas quedan en data y no forman parte del paquete distribuido.
+
+## I10
+
+Sin dependencias nuevas ni migración de la colección. SQLite personal creado en la primera escritura de candidatura; las lecturas sin archivo no lo crean. Respaldar `<base>.applications.sqlite3` junto con los demás datos locales. [Guía](../LearnDocs/18-application-tracking.md).

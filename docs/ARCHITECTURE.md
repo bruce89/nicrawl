@@ -1,6 +1,6 @@
 # Arquitectura propuesta
 
-Estado: arquitectura implementada I0–I7, actualizada el 2026-09-28. I7 agrega `server.py` y `ui/` como adaptadores de presentación; ver [ADR-010](adr/010-local-ui-api.md). I6 agrega `personal.py`, esquema 2 y ranking calculado en lectura; ver [ADR-009](adr/009-personal-state-ranking.md). I5 añade plan read-only, collect-all secuencial y un laboratorio asyncio aislado; ver [ADR-008](adr/008-concurrency-experiment.md). I4 agrega Greenhouse/GitLab y el laboratorio HTML independiente; ver [ADR-007](adr/007-second-source-html-lab.md). I2 agrega `collection.py`, `acquisition.py`, `locking.py`, `storage.py` y `sources/remotive.py`. Reloj y transporte se inyectan por parámetros. I3 agrega queries.py y exporting.py para consultas y exportación; las lecturas usan una instantánea transaccional. Arquitectura de puertos y adaptadores aplicada a fronteras concretas, sin microservicios.
+Estado: arquitectura implementada I0–I10, actualizada el 2026-09-30. I8 agrega `agent_tools.py`, `mcp_server.py` y `agent_demo.py`; [ADR-011](adr/011-agent-tools-mcp.md). I7 agrega `server.py` y `ui/` como adaptadores de presentación; ver [ADR-010](adr/010-local-ui-api.md). I6 agrega `personal.py`, esquema 2 y ranking calculado en lectura; ver [ADR-009](adr/009-personal-state-ranking.md). I5 añade plan read-only, collect-all secuencial y un laboratorio asyncio aislado; ver [ADR-008](adr/008-concurrency-experiment.md). I4 agrega Greenhouse/GitLab y el laboratorio HTML independiente; ver [ADR-007](adr/007-second-source-html-lab.md). I2 agrega `collection.py`, `acquisition.py`, `locking.py`, `storage.py` y `sources/remotive.py`. Reloj y transporte se inyectan por parámetros. I3 agrega queries.py y exporting.py para consultas y exportación; las lecturas usan una instantánea transaccional. Arquitectura de puertos y adaptadores aplicada a fronteras concretas, sin microservicios.
 
 ## Recorrido de una recolección
 
@@ -63,7 +63,7 @@ SQLite será la fuente de consulta después de publicar una corrida. `collect` e
 
 ## Próxima frontera de presentación, aún propuesta
 
-I7 implementa una UI local que consume la [API HTTP](API.md). UI, API y CLI comparten casos de uso Python de consulta, ranking y anotación; ninguna presentación posee reglas de negocio ni accede directamente a tablas. CLI y API siguen operables desde PowerShell. `serve` inicia el servidor en loopback y se termina con Ctrl+C. Más adelante, un adaptador de herramientas para agentes podrá reutilizar operaciones de lectura acotadas, con permisos propios para cualquier escritura o adquisición. Ver [roadmap](ROADMAP.md) y [extensiones](EXTENSIONS_AI.md).
+I7 implementa una UI local que consume la [API HTTP](API.md). UI, API y CLI comparten casos de uso Python de consulta, ranking y anotación; ninguna presentación posee reglas de negocio ni accede directamente a tablas. CLI y API siguen operables desde PowerShell. `serve` inicia el servidor en loopback y se termina con Ctrl+C. I8 reutiliza operaciones de lectura acotadas mediante herramientas MCP, con permisos propios para cualquier escritura o adquisición. Ver [roadmap](ROADMAP.md) y [extensiones](EXTENSIONS_AI.md).
 
 ## Concurrencia
 
@@ -92,3 +92,11 @@ No se necesita un contenedor de DI. Los constructores reciben dependencias. Los 
 ## Puente con arquitectura iOS
 
 La CLI cumple el papel de un adaptador de presentación; los casos de uso y repositorios resultarán familiares. Una corrida reemplaza al ciclo de interacción de pantalla como unidad de trabajo. El problema dominante aquí es consistencia de datos entre ejecuciones, no estado de navegación. `Protocol` sirve para contratos estructurales de tipos; no debe asumirse que tiene idénticas garantías que un protocolo Swift. [Recorrido comparativo](../LearnDocs/03-python-from-ios.md).
+
+## I9: perfiles y evaluación
+
+`saved_searches.py` valida/persiste configuración junto a la base, sin migrarla, y reutiliza consultas/ranking. `saved_cli.py` y rutas `/api/searches` son adaptadores. `evaluation.py` obtiene backup consistente temporal, proyecta evidencia sin notas y calcula métricas a partir de etiquetas independientes. Filtro title_query compartido entre CLI, API y MCP. [ADR-012](adr/012-saved-searches-evaluation.md).
+
+## I10: candidaturas
+
+`applications.py` contiene contratos, normalización de identidad y transacciones del almacén personal `<base>.applications.sqlite3`. `application_cli.py` y API/UI son adaptadores. La colección se lee al vincular una oferta y no se modifica; una referencia manual funciona sin colección. Revisiones y eventos se confirman juntos. [ADR-013](adr/013-application-tracking.md).

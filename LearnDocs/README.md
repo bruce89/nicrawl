@@ -6,6 +6,9 @@ Esta carpeta enseña conceptos y propone experimentos. [docs](../docs/SPEC.md) d
 
 | Orden | Lectura | Pregunta central |
 | --- | --- | --- |
+| I10 | [Seguimiento de candidaturas](18-application-tracking.md) | ¿Cómo separo identidad, estado e historial de una marca personal? |
+| I9 | [Búsquedas guardadas y pertinencia](17-saved-searches-and-relevance.md) | ¿Puedo repetir y evaluar mi criterio sobre una muestra fija? |
+| I8 | [Herramientas para agentes](16-agent-tools.md) | ¿Cómo expongo lectura con contratos, evidencia y privacidad? |
 | I7 | [UI y API local](15-local-ui-api.md) | ¿Cómo comparten casos de uso el navegador, la API y la CLI? |
 | I6 | [Ranking y estado personal](13-ranking-and-personal-state.md) · [Guía rápida de evaluación](14-i6-evaluation-quick-guide.md) | ¿Cómo evalúo reglas visibles sin mezclar mis decisiones con el origen? |
 | I5 | [Concurrencia y planificación](12-concurrency-and-planning.md) | ¿Cuándo ayuda async y cómo se conservan límites/cancelación? |
@@ -27,4 +30,4 @@ Antes de ejecutar, predecir. Después observar entrada, transformaciones y salid
 
 No hace falta estudiar todo Python antes de I1. Sí hace falta entender qué parte del sistema se está ejecutando, quién posee los recursos y qué invariantes protege. Una sesión puede terminar con una hipótesis falsa bien explicada; eso también es progreso.
 
-**I0–I7 están implementados y técnicamente verificados.** Empezá por la [guía I7](15-local-ui-api.md) si querés comparar navegador, HTTP y CLI; las guías anteriores recorren adquisición, consulta, concurrencia y ranking. Tus laboratorios y bitácora personales siguen pendientes. I8+ continúa como propuesta.
+**I0–I10 están implementados y técnicamente verificados.** Empezá por la [guía I7](15-local-ui-api.md) si querés comparar navegador, HTTP y CLI; las guías anteriores recorren adquisición, consulta, concurrencia y ranking. Tus laboratorios y bitácora personales siguen pendientes. I8 agrega la guía de herramientas MCP; I11+ continúa como propuesta.

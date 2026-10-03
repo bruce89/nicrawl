@@ -78,3 +78,7 @@ Resultado esperado: dos ofertas persistidas, dos altas en R1, un cambio en R2, n
 I2 conserva ofertas e historial. No se implementó borrado automático ni rotación de logs: el diagnóstico durable vive en SQLite. La siguiente política se mantiene como diseño futuro y debe probarse antes de activarse.
 
 Ofertas normalizadas: sin purga automática en MVP. Runs, observaciones y cambios: 90 días. Logs rotados: hasta cinco archivos de 5 MiB. No conservar cuerpos externos completos por defecto. La purga de historial respeta foreign keys y no elimina ofertas; antes de habilitarla se prueba su efecto sobre consultas de novedades. Borrado completo solo mediante una acción explícita sobre la base seleccionada.
+
+## I10: almacén personal de candidaturas
+
+Archivo SQLite separado, esquema 1: applications (UUID, job_key opcional, título/empresa/URL capturados, estado, revisión, fechas), identities (identidad única → candidatura), events (candidatura + revisión, fecha, tipo, estado anterior/nuevo y motivo). La colección mantiene esquema 2. No hay FK entre archivos; el vínculo se valida al alta. [Contrato](APPLICATIONS.md).

@@ -1,6 +1,6 @@
 # Supuestos, decisiones abiertas y aprobación
 
-Actualizado: 2026-09-28. Referencia organizativa: documentación existente de ForeKast, revisada en modo lectura.
+Actualizado: 2026-09-30. Referencia organizativa: documentación existente de ForeKast, revisada en modo lectura.
 
 ## Defaults para poder documentar
 
@@ -32,7 +32,10 @@ La región y fuente son supuestos, no respuestas confirmadas. La preparación do
 | I5 — concurrencia y planificación | APROBADO; implementado y verificado | 2026-09-28: “Perfecto, vamos con I5” |
 | I6 — ranking y estado personal | APROBADO; implementado y verificado | 2026-09-28: “Bien, seguimos con I6” |
 | I7 — UI y API locales desacopladas | APROBADO; implementado y verificado | 2026-09-28: “Genial, entonces arrancamos I7?”; UI, API y CLI operables desde terminal |
-| I8+ — agentes/AI opcional | Candidatos posteriores sin aprobación | 2026-09-28: prever extensibilidad para uso por agentes |
+| I8 — herramientas de lectura para agentes | APROBADO; implementado y verificado | 2026-09-30: “Bien, vamos con I8”; MCP stdio y demo sin modelo |
+| I9 — búsquedas guardadas y pertinencia | APROBADO; implementado | 2026-09-30: “Bien, vamos con I9”; Senior Software Engineer desde Uruguay |
+| I10 — candidaturas y referencias | APROBADO; implementado | 2026-09-30: “Vamos con I10” |
+| I11+ — preparación y envío autorizado | Hitos futuros propuestos | 2026-09-30: explorar LinkedIn y milestones hacia eventual autopostulación |
 
 Cuando llegue una aprobación, registrar fecha, cortes incluidos, fuente/ámbito si corresponde y cualquier cambio de alcance. La exigencia de esperar proviene del pedido del usuario, no de una limitación de herramientas o una política externa.
 
@@ -45,7 +48,17 @@ Cuando llegue una aprobación, registrar fecha, cortes incluidos, fuente/ámbito
 
 No es necesario responder todo para aprobar I0 + I1; el bloque no depende de una fuente real.
 
+## Perfil confirmado en I9
+
+El usuario indicó Senior Software Engineer, remoto o presencial desde Uruguay. Sustituye el supuesto anterior de Argentina. Perfil inicial senior-uy, muestra fija y guía preparados; valoración manual y nuevas fuentes pendientes.
+
+## I8 aprobado
+
+2026-09-30: el usuario indicó “Bien, vamos con I8”. Implementadas tres herramientas MCP de lectura, extra opcional y demo sin modelo; [contrato](AGENT_TOOLS.md). I9 aprobado posteriormente; I10 aprobado posteriormente; I11+ pendiente y evaluación personal pendiente.
+
 ## Historial
+
+2026-09-30: se concreta I8 como siguiente corte documental y se registran hitos hacia postulaciones asistidas, con fuentes oficiales sobre LinkedIn. La evaluación pendiente se aclara como `rank` vs `list`; `mark` es la escritura de revisión personal.
 
 2026-09-30: el usuario creó el repositorio `bruce89/nicrawl` y autorizó publicar allí el código y la documentación de I7. Los datos locales y entornos siguen excluidos.
 
