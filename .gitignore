@@ -9,6 +9,11 @@ __pycache__/
 build/
 dist/
 data/
+*.applications.sqlite3*
+*.simulation.sqlite3*
+*.http-trials.sqlite3*
+*.test-receiver.sqlite3*
+*.test-receiver.token*
 logs/
 .env
 .env.*

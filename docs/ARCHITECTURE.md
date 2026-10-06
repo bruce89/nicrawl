@@ -1,6 +1,6 @@
 # Arquitectura propuesta
 
-Estado: arquitectura implementada I0–I10, actualizada el 2026-09-30. I8 agrega `agent_tools.py`, `mcp_server.py` y `agent_demo.py`; [ADR-011](adr/011-agent-tools-mcp.md). I7 agrega `server.py` y `ui/` como adaptadores de presentación; ver [ADR-010](adr/010-local-ui-api.md). I6 agrega `personal.py`, esquema 2 y ranking calculado en lectura; ver [ADR-009](adr/009-personal-state-ranking.md). I5 añade plan read-only, collect-all secuencial y un laboratorio asyncio aislado; ver [ADR-008](adr/008-concurrency-experiment.md). I4 agrega Greenhouse/GitLab y el laboratorio HTML independiente; ver [ADR-007](adr/007-second-source-html-lab.md). I2 agrega `collection.py`, `acquisition.py`, `locking.py`, `storage.py` y `sources/remotive.py`. Reloj y transporte se inyectan por parámetros. I3 agrega queries.py y exporting.py para consultas y exportación; las lecturas usan una instantánea transaccional. Arquitectura de puertos y adaptadores aplicada a fronteras concretas, sin microservicios.
+Estado: arquitectura implementada I0–I12b, actualizada el 2026-10-04. I11 amplía `applications.py` con perfiles/drafts y mantiene el almacén personal separado de ofertas; [ADR-014](adr/014-profile-drafts.md). I8 agrega `agent_tools.py`, `mcp_server.py` y `agent_demo.py`; [ADR-011](adr/011-agent-tools-mcp.md). I7 agrega `server.py` y `ui/` como adaptadores de presentación; ver [ADR-010](adr/010-local-ui-api.md). I6 agrega `personal.py`, esquema 2 y ranking calculado en lectura; ver [ADR-009](adr/009-personal-state-ranking.md). I5 añade plan read-only, collect-all secuencial y un laboratorio asyncio aislado; ver [ADR-008](adr/008-concurrency-experiment.md). I4 agrega Greenhouse/GitLab y el laboratorio HTML independiente; ver [ADR-007](adr/007-second-source-html-lab.md). I2 agrega `collection.py`, `acquisition.py`, `locking.py`, `storage.py` y `sources/remotive.py`. Reloj y transporte se inyectan por parámetros. I3 agrega queries.py y exporting.py para consultas y exportación; las lecturas usan una instantánea transaccional. Arquitectura de puertos y adaptadores aplicada a fronteras concretas, sin microservicios.
 
 ## Recorrido de una recolección
 
@@ -100,3 +100,11 @@ La CLI cumple el papel de un adaptador de presentación; los casos de uso y repo
 ## I10: candidaturas
 
 `applications.py` contiene contratos, normalización de identidad y transacciones del almacén personal `<base>.applications.sqlite3`. `application_cli.py` y API/UI son adaptadores. La colección se lee al vincular una oferta y no se modifica; una referencia manual funciona sin colección. Revisiones y eventos se confirman juntos. [ADR-013](adr/013-application-tracking.md).
+
+## I12a: ensayo de recepción
+
+`simulation.py` concentra preparación, confirmación, recepción simulada y reconciliación. `simulation_cli.py`, `server.py` y la UI llaman al mismo servicio. El almacenamiento `<base>.simulation.sqlite3` conserva instantáneas, recibos e historial, separado de perfiles y candidaturas. El receptor no abre conexiones ni consume la URL del aviso; los escenarios modelan resultados de transporte. Ver [ADR-015](adr/015-local-submission-simulation.md).
+
+## I12b: frontera entre procesos
+
+`http_trial.py` confirma sending antes de HTTP y guarda el recibo después, en transacciones distintas. `test_receiver.py` arbitra duplicados en su propio almacén mediante clave única. `trial_store.py` controla identidad y esquema de ambos archivos. La UI usa la API de nicrawl; esta usa el token local para contactar al receptor. No se transmite el token al navegador. [ADR-016](adr/016-http-test-receiver.md).

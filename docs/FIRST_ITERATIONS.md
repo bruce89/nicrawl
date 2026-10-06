@@ -1,6 +1,6 @@
 # Fichas de las primeras iteraciones
 
-**Actualizado 2026-09-30: I0–I10 aprobados e implementados técnicamente; I11+ pendiente de aprobación.** Las fichas conservan el alcance de referencia. Evidencia en [VALIDATION](../VALIDATION.md); ejercicios personales aún pendientes.
+**Actualizado 2026-10-04: I0–I12b aprobados e implementados técnicamente; I12c requiere evaluación y aprobación aparte.** Las fichas conservan el alcance de referencia. Evidencia en [VALIDATION](../VALIDATION.md); ejercicios personales aún pendientes.
 
 ## I0 — base reproducible
 
@@ -108,7 +108,7 @@ Entregas: UI en navegador y [API HTTP local](API.md) iniciadas con `serve`, list
 
 **Estado:** aprobado el 2026-09-28 (“Genial, entonces arrancamos I7?”), implementado y verificado. Evaluación personal I6 pendiente.
 
-**Extensión posterior:** diseñar herramientas de lectura acotadas para agentes sobre esos mismos casos de uso, con contratos, límites y evidencia. Escrituras, recolección o acciones externas requieren autorización y diseño específicos. Ver [roadmap](ROADMAP.md) y [extensiones](EXTENSIONS_AI.md). I8 implementa esa extensión de lectura; I9 implementa perfiles/evaluación; I10 implementa seguimiento; I11+ queda pendiente.
+**Extensión posterior:** diseñar herramientas de lectura acotadas para agentes sobre esos mismos casos de uso, con contratos, límites y evidencia. Escrituras, recolección o acciones externas requieren autorización y diseño específicos. Ver [roadmap](ROADMAP.md) y [extensiones](EXTENSIONS_AI.md). I8 implementa esa extensión de lectura; I9 implementa perfiles/evaluación; I10 implementa seguimiento; I11 suma perfiles y borradores locales.
 
 ## I8 — herramientas de lectura para agentes
 
@@ -128,4 +128,16 @@ La aceptación técnica cubre paridad, persistencia atómica, identidad de muest
 
 ## I10 — seguimiento de candidaturas
 
-Aprobado el 2026-09-30 (“Vamos con I10”). Implementado en 0.10.0: aplicación separada de favoritos, altas desde oferta o referencia manual, estados con motivo/historial, deduplicación y revisión optimista; UI/API/CLI sobre el mismo servicio. [Contrato](APPLICATIONS.md), [guía](../LearnDocs/18-application-tracking.md), [ADR-013](adr/013-application-tracking.md). Sin extracción de referencias ni envíos. I11+ pendiente.
+Aprobado el 2026-09-30 (“Vamos con I10”). Implementado en 0.10.0: aplicación separada de favoritos, altas desde oferta o referencia manual, estados con motivo/historial, deduplicación y revisión optimista; UI/API/CLI sobre el mismo servicio. [Contrato](APPLICATIONS.md), [guía](../LearnDocs/18-application-tracking.md), [ADR-013](adr/013-application-tracking.md). Sin extracción de referencias ni envíos. I11 aprobado e implementado; I12 permanece pendiente.
+
+## I11 — perfiles y borradores revisables
+
+Aprobado el 2026-10-03 (“Perfecto, vamos con I11”). Implementado en 0.11.0: versiones locales del CV con afirmaciones y citas literales, borradores por candidatura con preguntas pendientes, revisiones y exportación. UI/API/CLI comparten la lógica. Sin LLM, envío ni subida del CV. [Contrato](PROFILE_DRAFTS.md), [guía](../LearnDocs/19-profile-and-drafts.md) y [ADR-014](adr/014-profile-drafts.md). El usuario confirmó la validación manual del flujo el 2026-10-04. La suite automatizada de I11 sigue pendiente.
+
+## I12a — receptor local simulado
+
+Aprobado el 2026-10-04 (“Dale con la parte a”). Implementado en 0.12.0: revisión de instantánea, confirmación por hash, identidad durable por borrador/versión y recibos idempotentes. Cuatro escenarios locales, estado incierto y reconciliación explícita. UI, CLI y API comparten el servicio; la simulación no cambia candidaturas ni transmite datos a terceros. [Contrato](SIMULATION.md), [guía](../LearnDocs/20-local-submission-lab.md), [ADR-015](adr/015-local-submission-simulation.md). I12b pendiente.
+
+## I12b — receptor HTTP propio
+
+Aprobado el 2026-10-04: “Vamos con el primer camino, y dejamos en el SPEC o en algún lado evaluar luego el segundo”. App 0.13.0: procesos y almacenes separados, snapshot/identidad confirmados, token local, HTTP en loopback, incertidumbre y retry explícito idempotente. [Contrato](HTTP_TRIAL.md), [guía](../LearnDocs/21-http-receiver-lab.md), [ADR-016](adr/016-http-test-receiver.md). I12c reserva la evaluación de un portal/ATS real; todavía no selecciona proveedor ni autoriza envíos.

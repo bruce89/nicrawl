@@ -1,5 +1,8 @@
 """Seguimiento personal transaccional, separado de la colección y sin red."""
 
+import hashlib
+import json
+import os
 import re
 import sqlite3
 import unicodedata
@@ -31,6 +34,29 @@ SCHEMA = (
         from_state TEXT, to_state TEXT NOT NULL, reason TEXT NOT NULL,
         PRIMARY KEY(application_id,revision))""",
 )
+MATERIALS_SCHEMA = (
+    """CREATE TABLE profile_versions(
+        version INTEGER PRIMARY KEY AUTOINCREMENT, label TEXT NOT NULL,
+        cv_text TEXT NOT NULL, cv_sha256 TEXT NOT NULL, created_at TEXT NOT NULL)""",
+    """CREATE TABLE profile_claims(
+        profile_version INTEGER NOT NULL REFERENCES profile_versions(version),
+        claim_id TEXT NOT NULL, statement TEXT NOT NULL, evidence TEXT NOT NULL,
+        evidence_sha256 TEXT NOT NULL, PRIMARY KEY(profile_version,claim_id))""",
+    """CREATE TABLE drafts(
+        id TEXT PRIMARY KEY, application_id TEXT NOT NULL REFERENCES applications(id),
+        current_version INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)""",
+    """CREATE TABLE draft_versions(
+        draft_id TEXT NOT NULL REFERENCES drafts(id), version INTEGER NOT NULL,
+        profile_version INTEGER NOT NULL REFERENCES profile_versions(version),
+        opening TEXT NOT NULL, claim_ids_json TEXT NOT NULL, questions_json TEXT NOT NULL,
+        content_sha256 TEXT NOT NULL, created_at TEXT NOT NULL,
+        PRIMARY KEY(draft_id,version))""",
+)
+CV_MAX_CHARS = 300_000
+CLAIM_MAX = 50
+OPENING_MAX = 2_000
+QUESTIONS_MAX = 20
+QUESTION_MAX = 500
 
 
 class ApplicationError(ValueError):
@@ -75,6 +101,55 @@ class Update(Contract):
     def meaningful_reason(self) -> Self:
         if not self.reason.strip():
             raise ValueError("Indicá un motivo para registrar o corregir el estado.")
+        return self
+
+
+class ClaimInput(Contract):
+    statement: Annotated[str, Field(min_length=1, max_length=500)]
+    evidence: Annotated[str, Field(min_length=1, max_length=2000)]
+
+
+class ProfileInput(Contract):
+    label: Annotated[str, Field(min_length=1, max_length=80)]
+    cv_text: Annotated[str, Field(min_length=1, max_length=CV_MAX_CHARS)]
+    claims: Annotated[list[ClaimInput], Field(min_length=1, max_length=CLAIM_MAX)]
+
+    @model_validator(mode="after")
+    def evidence_is_verbatim_and_unique(self) -> Self:
+        if not self.label.strip():
+            raise ValueError("El nombre de versión está vacío.")
+        if not self.cv_text.strip():
+            raise ValueError("El CV está vacío.")
+        for claim in self.claims:
+            if claim.statement != claim.statement.strip() or not claim.statement:
+                raise ValueError(
+                    "Cada afirmación debe tener texto y no incluir espacios exteriores."
+                )
+            if claim.evidence != claim.evidence.strip() or claim.evidence not in self.cv_text:
+                raise ValueError("Cada evidencia debe ser una cita literal del CV aportado.")
+        normalized = [claim.statement.casefold() for claim in self.claims]
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("No repitas afirmaciones en una versión del perfil.")
+        return self
+
+
+class DraftInput(Contract):
+    profile_version: Annotated[int, Field(ge=1)]
+    claim_ids: Annotated[
+        list[Annotated[str, Field(pattern=r"^E\d{2}$")]], Field(max_length=CLAIM_MAX)
+    ] = Field(default_factory=list)
+    opening: Annotated[str, Field(max_length=OPENING_MAX)] = ""
+    questions: Annotated[
+        list[Annotated[str, Field(min_length=1, max_length=QUESTION_MAX)]],
+        Field(max_length=QUESTIONS_MAX),
+    ] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def unique_claims_and_questions(self) -> Self:
+        if len(set(self.claim_ids)) != len(self.claim_ids):
+            raise ValueError("No repitas una afirmación en el borrador.")
+        if any(item != item.strip() for item in self.questions):
+            raise ValueError("Las preguntas no deben tener espacios al inicio o al final.")
         return self
 
 
@@ -133,9 +208,16 @@ def _connect(database: Path, *, write: bool = False) -> Iterator[sqlite3.Connect
         if not tables and app_id == 0 and version == 0 and write:
             for statement in SCHEMA:
                 connection.execute(statement)
+            for statement in MATERIALS_SCHEMA:
+                connection.execute(statement)
             connection.execute(f"PRAGMA application_id={APP_ID}")
-            connection.execute("PRAGMA user_version=1")
-        elif app_id != APP_ID or version != 1:
+            connection.execute("PRAGMA user_version=2")
+        elif app_id == APP_ID and version == 1:
+            if write:
+                for statement in MATERIALS_SCHEMA:
+                    connection.execute(statement)
+                connection.execute("PRAGMA user_version=2")
+        elif app_id != APP_ID or version != 2:
             raise ApplicationError("Base de candidaturas ajena o de versión incompatible.")
         yield connection
         if write:
@@ -253,3 +335,242 @@ def update(database: Path, application_id: str, request: Update) -> dict[str, An
             ),
         )
         return _detail(connection, application_id)
+
+
+def _profile(connection: sqlite3.Connection, version: int | None = None) -> dict[str, Any]:
+    row = connection.execute(
+        "SELECT * FROM profile_versions WHERE version=?"
+        if version is not None
+        else "SELECT * FROM profile_versions ORDER BY version DESC LIMIT 1",
+        (version,) if version is not None else (),
+    ).fetchone()
+    if row is None:
+        raise NotFound("Versión de perfil no encontrada.")
+    result = dict(row)
+    result["claims"] = [
+        dict(claim)
+        for claim in connection.execute(
+            "SELECT claim_id,statement,evidence,evidence_sha256 FROM profile_claims "
+            "WHERE profile_version=? ORDER BY claim_id",
+            (row["version"],),
+        )
+    ]
+    return result
+
+
+def save_profile(database: Path, request: ProfileInput) -> dict[str, Any]:
+    now = datetime.now(UTC).isoformat()
+    digest = hashlib.sha256(request.cv_text.encode("utf-8")).hexdigest()
+    with _connect(database, write=True) as connection:
+        cursor = connection.execute(
+            "INSERT INTO profile_versions(label,cv_text,cv_sha256,created_at) VALUES(?,?,?,?)",
+            (request.label.strip(), request.cv_text, digest, now),
+        )
+        version = cursor.lastrowid
+        connection.executemany(
+            "INSERT INTO profile_claims VALUES(?,?,?,?,?)",
+            [
+                (
+                    version,
+                    f"E{i:02}",
+                    claim.statement,
+                    claim.evidence,
+                    hashlib.sha256(claim.evidence.encode("utf-8")).hexdigest(),
+                )
+                for i, claim in enumerate(request.claims, 1)
+            ],
+        )
+        profile = _profile(connection, version)
+        profile.pop("cv_text", None)
+        return profile
+
+
+def list_profiles(database: Path) -> dict[str, Any]:
+    if not tracker_path(database).exists():
+        return {"profiles": []}
+    with _connect(database) as connection:
+        if connection.execute("PRAGMA user_version").fetchone()[0] < 2:
+            return {"profiles": []}
+        rows = connection.execute(
+            "SELECT version,label,cv_sha256,created_at FROM profile_versions ORDER BY version DESC"
+        )
+        return {"profiles": [dict(row) for row in rows]}
+
+
+def get_profile(database: Path, version: int | None = None) -> dict[str, Any]:
+    if not tracker_path(database).exists():
+        raise NotFound("Versión de perfil no encontrada.")
+    with _connect(database) as connection:
+        return _profile(connection, version)
+
+
+def _draft_preview(
+    application: dict[str, Any],
+    profile: dict[str, Any],
+    opening: str,
+    claims: list[dict[str, Any]],
+    questions: list[str],
+) -> str:
+    lines = [
+        f"# Borrador — {application['title']} — {application['company']}",
+        f"Referencia: {application['url']}",
+        "",
+        "BORRADOR: requiere revisión humana.",
+        f"Perfil local versión {profile['version']} ({profile['label']}).",
+    ]
+    if opening:
+        lines += [
+            "",
+            "### Apertura escrita por el usuario",
+            opening,
+            "Verificar contenido y adecuación antes de usar.",
+        ]
+    lines += ["", "### Afirmaciones seleccionadas"]
+    if claims:
+        lines.extend(f"- {claim['statement']} [{claim['claim_id']}]" for claim in claims)
+    else:
+        lines.append("- No se seleccionaron afirmaciones del perfil.")
+    lines += ["", "### Evidencia literal en el CV"]
+    if claims:
+        lines.extend(f"- {claim['claim_id']}: “{claim['evidence']}”" for claim in claims)
+    else:
+        lines.append("- Sin citas seleccionadas.")
+    lines.append(
+        "La cita exacta aparece en el CV aportado; esto no verifica que sea actual ni verdadera."
+    )
+    lines += ["", "### Preguntas pendientes"]
+    lines.extend(f"- {question}" for question in questions)
+    if not questions:
+        lines.append("- Sin preguntas registradas; revisar el aviso y el perfil antes de usar.")
+    return "\n".join(lines) + "\n"
+
+
+def create_draft(database: Path, application_id: str, request: DraftInput) -> dict[str, Any]:
+    now, identifier = datetime.now(UTC).isoformat(), str(uuid4())
+    with _connect(database, write=True) as connection:
+        application = _detail(connection, application_id)["application"]
+        profile = _profile(connection, request.profile_version)
+        claims_by_id = {item["claim_id"]: item for item in profile["claims"]}
+        if not set(request.claim_ids) <= set(claims_by_id):
+            raise ValueError("La selección incluye afirmaciones fuera de la versión del perfil.")
+        claims = [claims_by_id[key] for key in request.claim_ids]
+        preview = _draft_preview(application, profile, request.opening, claims, request.questions)
+        digest = hashlib.sha256(preview.encode("utf-8")).hexdigest()
+        connection.execute(
+            "INSERT INTO drafts VALUES(?,?,1,?,?)", (identifier, application_id, now, now)
+        )
+        connection.execute(
+            "INSERT INTO draft_versions VALUES(?,?,?,?,?,?,?,?)",
+            (
+                identifier,
+                1,
+                request.profile_version,
+                request.opening,
+                json.dumps(request.claim_ids),
+                json.dumps(request.questions),
+                digest,
+                now,
+            ),
+        )
+    return show_draft(database, identifier)
+
+
+def show_draft(database: Path, draft_id: str, version: int | None = None) -> dict[str, Any]:
+    if not tracker_path(database).exists():
+        raise NotFound("Borrador no encontrado.")
+    with _connect(database) as connection:
+        head = connection.execute("SELECT * FROM drafts WHERE id=?", (draft_id,)).fetchone()
+        if head is None:
+            raise NotFound("Borrador no encontrado.")
+        chosen = version or head["current_version"]
+        row = connection.execute(
+            "SELECT * FROM draft_versions WHERE draft_id=? AND version=?", (draft_id, chosen)
+        ).fetchone()
+        if row is None:
+            raise NotFound("Versión de borrador no encontrada.")
+        app = _detail(connection, head["application_id"])["application"]
+        profile = _profile(connection, row["profile_version"])
+        ids, questions = json.loads(row["claim_ids_json"]), json.loads(row["questions_json"])
+        claims = [claim for claim in profile["claims"] if claim["claim_id"] in ids]
+        return {
+            "id": draft_id,
+            "application_id": head["application_id"],
+            "version": chosen,
+            "current_version": head["current_version"],
+            "profile_version": profile["version"],
+            "claim_ids": ids,
+            "opening": row["opening"],
+            "questions": questions,
+            "content_sha256": row["content_sha256"],
+            "preview": _draft_preview(app, profile, row["opening"], claims, questions),
+        }
+
+
+def revise_draft(
+    database: Path, draft_id: str, expected_version: int, request: DraftInput
+) -> dict[str, Any]:
+    with _connect(database, write=True) as connection:
+        head = connection.execute("SELECT * FROM drafts WHERE id=?", (draft_id,)).fetchone()
+        if head is None:
+            raise NotFound("Borrador no encontrado.")
+        if head["current_version"] != expected_version:
+            raise Conflict("Versión desactualizada: recargá el borrador antes de editar.")
+        profile = _profile(connection, request.profile_version)
+        claims_by_id = {item["claim_id"]: item for item in profile["claims"]}
+        if not set(request.claim_ids) <= set(claims_by_id):
+            raise ValueError("La selección incluye afirmaciones fuera de la versión del perfil.")
+        app = _detail(connection, head["application_id"])["application"]
+        claims = [claims_by_id[key] for key in request.claim_ids]
+        preview = _draft_preview(app, profile, request.opening, claims, request.questions)
+        now, version = datetime.now(UTC).isoformat(), expected_version + 1
+        connection.execute(
+            "INSERT INTO draft_versions VALUES(?,?,?,?,?,?,?,?)",
+            (
+                draft_id,
+                version,
+                request.profile_version,
+                request.opening,
+                json.dumps(request.claim_ids),
+                json.dumps(request.questions),
+                hashlib.sha256(preview.encode("utf-8")).hexdigest(),
+                now,
+            ),
+        )
+        connection.execute(
+            "UPDATE drafts SET current_version=?,updated_at=? WHERE id=?", (version, now, draft_id)
+        )
+    return show_draft(database, draft_id)
+
+
+def list_drafts(database: Path, application_id: str) -> dict[str, Any]:
+    if not tracker_path(database).exists():
+        raise NotFound("Candidatura no encontrada.")
+    with _connect(database) as connection:
+        _detail(connection, application_id)
+        if connection.execute("PRAGMA user_version").fetchone()[0] < 2:
+            return {"drafts": []}
+        rows = connection.execute(
+            "SELECT * FROM drafts WHERE application_id=? ORDER BY updated_at DESC",
+            (application_id,),
+        )
+        return {"drafts": [dict(row) for row in rows]}
+
+
+def export_draft(
+    database: Path, draft_id: str, destination: Path, version: int | None = None
+) -> Path:
+    draft = show_draft(database, draft_id, version)
+    target = Path(destination).absolute()
+    protected = {Path(database).resolve(), tracker_path(database).resolve()}
+    if target.resolve(strict=False) in protected:
+        raise ValueError("El destino coincide con una base de datos local.")
+    descriptor = os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
+            stream.write(draft["preview"])
+            stream.flush()
+            os.fsync(stream.fileno())
+    except BaseException:
+        target.unlink(missing_ok=True)
+        raise
+    return target

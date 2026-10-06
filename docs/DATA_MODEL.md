@@ -82,3 +82,11 @@ Ofertas normalizadas: sin purga automática en MVP. Runs, observaciones y cambio
 ## I10: almacén personal de candidaturas
 
 Archivo SQLite separado, esquema 1: applications (UUID, job_key opcional, título/empresa/URL capturados, estado, revisión, fechas), identities (identidad única → candidatura), events (candidatura + revisión, fecha, tipo, estado anterior/nuevo y motivo). La colección mantiene esquema 2. No hay FK entre archivos; el vínculo se valida al alta. [Contrato](APPLICATIONS.md).
+
+## Ensayo I12a
+
+Almacén independiente `<base>.simulation.sqlite3`, esquema 1 e identidad SQLite propia. `submissions`: UUID, draft_id/version únicos, payload congelado, digest, state y created_at. `receipts`: submission_id único, digest, receipt_id y result. `events`: secuencia, submission_id, at, action y state. No hay claves externas entre archivos ni actualizaciones del estado real de candidatura. [Contrato y transacciones](SIMULATION.md).
+
+## Receptor HTTP I12b
+
+`<base>.http-trials.sqlite3`: trials (snapshot, receptor/puerto, hash, escenario, estado, recibo) y events. `<base>.test-receiver.sqlite3`: identity, requests (clave/hash/escenario) y receipts (clave única, hash, resultado y snapshot recibido). Esquema 1 con application_id propio en cada archivo. Token en `<base>.test-receiver.token`, separado de payload/historial y excluido de Git. [Contrato](HTTP_TRIAL.md).

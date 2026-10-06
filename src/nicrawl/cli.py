@@ -23,15 +23,19 @@ from nicrawl.concurrency_lab import compare as compare_concurrency
 from nicrawl.exporting import export_file
 from nicrawl.html_lab import LabError
 from nicrawl.html_lab import sample as sample_html
+from nicrawl.http_trial_cli import app as http_trial_app
 from nicrawl.locking import CollectionBusy
 from nicrawl.personal import Preferences
 from nicrawl.personal import mark as mark_job
 from nicrawl.personal import rank as rank_jobs
 from nicrawl.planning import plan as plan_sources
+from nicrawl.profile_cli import app as profile_app
 from nicrawl.saved_cli import app as saved_app
 from nicrawl.server import HOST, create_server
+from nicrawl.simulation_cli import app as simulation_app
 from nicrawl.sources.demo_html import PageStructureError, Scenario, load_scenario, parse_jobs
 from nicrawl.storage import Repository, StorageError
+from nicrawl.test_receiver import create_receiver
 
 app = typer.Typer(
     help="nicrawl — ofertas locales, ranking explicable y laboratorios de scraping.",
@@ -42,6 +46,26 @@ app = typer.Typer(
 )
 app.add_typer(saved_app, name="saved")
 app.add_typer(applications_app, name="applications")
+app.add_typer(profile_app, name="profile")
+app.add_typer(simulation_app, name="simulation")
+app.add_typer(http_trial_app, name="http-trial")
+
+
+@app.command("test-receiver")
+def test_receiver_command(
+    ctx: typer.Context,
+    port: Annotated[int, typer.Option(min=1, max=65535)] = 8766,
+) -> None:
+    """Iniciar receptor HTTP de prueba en loopback; detener con Ctrl+C."""
+    try:
+        with create_receiver(ctx.obj, port) as server:
+            typer.echo(f"Receptor de ensayo en http://127.0.0.1:{port}. Ctrl+C para detener.")
+            server.serve_forever()
+    except KeyboardInterrupt:
+        typer.echo("Receptor de ensayo detenido.")
+    except (OSError, ValueError, sqlite3.Error) as error:
+        typer.echo(f"Error local: {error}", err=True)
+        raise typer.Exit(1) from error
 
 
 def run() -> None:

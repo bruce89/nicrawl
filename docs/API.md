@@ -53,3 +53,11 @@ La API está pensada para un equipo personal. No hay autenticación multiusuario
 ## I10
 
 GET/POST `/api/applications` y GET/PATCH `/api/applications/<uuid>` permiten seguimiento personal. Revisiones viejas devuelven 409; las escrituras requieren Host/Origin local, JSON y cuerpo de hasta 16384 bytes. UI `/applications`. [Contrato](APPLICATIONS.md). No cambia favoritos ni incorpora envío externo.
+
+## Ensayo local I12a
+
+POST `/api/simulations` prepara una revisión; GET `/api/simulations/<id>` consulta estado e instantánea. POST `/<id>/send` confirma el hash revisado y el escenario; POST `/<id>/reconcile` recupera un resultado incierto. Las dos últimas rutas también llevan el prefijo `/api/simulations`. [Contratos y ejemplos](SIMULATION.md). Sin HTTP saliente ni cambio del estado de candidatura.
+
+## Receptor propio I12b
+
+La API del emisor agrega `/api/http-trials` (POST draft_id/version), `/<id>` (GET), `/<id>/send` (POST review_sha256/scenario), `/<id>/reconcile` (POST {}) y `/<id>/retry` (POST review_sha256); todas las rutas bajo `/api/http-trials`. El emisor invoca el receptor local con token, sin enviar el secreto al navegador. [Contrato completo](HTTP_TRIAL.md). I12c reserva la evaluación de una integración externa.

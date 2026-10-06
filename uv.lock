@@ -488,7 +488,7 @@ wheels = [
 
 [[package]]
 name = "nicrawl"
-version = "0.10.0"
+version = "0.13.0"
 source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },

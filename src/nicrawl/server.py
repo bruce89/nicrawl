@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, cast
 from urllib.parse import parse_qs, unquote, urlsplit
 
-from nicrawl import applications, queries, saved_searches
+from nicrawl import applications, http_trial, queries, saved_searches, simulation
 from nicrawl.personal import Preferences, mark, rank
 from nicrawl.storage import StorageError
 
@@ -176,6 +176,43 @@ def create_server(database: Path, port: int = 8765) -> ThreadingHTTPServer:
                             database, state=_single(params, "state"), limit=_limit(params)
                         ),
                     )
+                elif route.path.startswith("/api/http-trials/") and not route.query:
+                    self._json(
+                        HTTPStatus.OK,
+                        http_trial.show(database, route.path[len("/api/http-trials/") :]),
+                    )
+                elif route.path.startswith("/api/simulations/") and not route.query:
+                    self._json(
+                        HTTPStatus.OK,
+                        simulation.show(database, route.path[len("/api/simulations/") :]),
+                    )
+                elif route.path == "/api/profiles" and not route.query:
+                    self._json(HTTPStatus.OK, applications.list_profiles(database))
+                elif route.path.startswith("/api/profiles/") and not route.query:
+                    raw_version = route.path[len("/api/profiles/") :]
+                    if not raw_version.isdigit():
+                        raise ValueError("Versión de perfil inválida.")
+                    self._json(HTTPStatus.OK, applications.get_profile(database, int(raw_version)))
+                elif route.path.startswith("/api/applications/") and route.path.endswith("/drafts"):
+                    if route.query:
+                        raise ValueError("La lista de borradores no acepta parámetros.")
+                    application_id = route.path[len("/api/applications/") : -len("/drafts")].rstrip(
+                        "/"
+                    )
+                    self._json(HTTPStatus.OK, applications.list_drafts(database, application_id))
+                elif route.path.startswith("/api/drafts/"):
+                    params = self._parameters(route.query, {"version"})
+                    raw_version = _single(params, "version")
+                    if raw_version and not raw_version.isdigit():
+                        raise ValueError("Versión de borrador inválida.")
+                    self._json(
+                        HTTPStatus.OK,
+                        applications.show_draft(
+                            database,
+                            route.path[len("/api/drafts/") :],
+                            int(raw_version) if raw_version else None,
+                        ),
+                    )
                 elif route.path.startswith("/api/applications/") and not route.query:
                     self._json(
                         HTTPStatus.OK,
@@ -295,42 +332,78 @@ def create_server(database: Path, port: int = 8765) -> ThreadingHTTPServer:
                 self._error(error)
 
         def do_PUT(self) -> None:
-            self.connection.settimeout(2)
+            self.connection.settimeout(10)
             try:
+                path = urlsplit(self.path).path
                 length = int(self.headers.get("Content-Length", ""))
-                if self.headers.get("Transfer-Encoding") or not 1 <= length <= 8192:
-                    raise ValueError("Cuerpo fuera de límite (1–8192 bytes).")
-                raw_body = self.rfile.read(length)
-                if len(raw_body) != length:
+                limit = (
+                    2500000
+                    if path == "/api/profiles"
+                    else 16384
+                    if path.startswith("/api/drafts/")
+                    else 8192
+                )
+                if self.headers.get("Transfer-Encoding") or not 1 <= length <= limit:
+                    raise ValueError("Cuerpo fuera del límite permitido.")
+                raw = self.rfile.read(length)
+                if len(raw) != length:
                     raise ValueError("Cuerpo incompleto.")
                 if not self._host_allowed() or not self._origin_allowed():
-                    return
-                if self.path != "/api/searches":
-                    self._json(HTTPStatus.NOT_FOUND, {"error": "Ruta no encontrada."})
                     return
                 if (
                     self.headers.get("Content-Type", "").split(";")[0].strip().lower()
                     != "application/json"
                 ):
-                    self._json(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, {"error": "Se requiere JSON."})
+                    self._json(
+                        HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+                        {"error": "Se requiere application/json."},
+                    )
                     return
-                body = json.loads(raw_body)
-                if not isinstance(body, dict) or set(body) != {"profile", "replace"}:
-                    raise ValueError("Campos requeridos: profile, replace.")
-                if not isinstance(body["replace"], bool):
-                    raise ValueError("replace debe ser booleano.")
-                profile = saved_searches.SavedSearch.model_validate(body["profile"])
-                saved_searches.save(database, profile, replace=body["replace"])
-                self._json(HTTPStatus.OK, profile.model_dump())
-            except (OSError, ValueError) as error:
+                body = json.loads(raw)
+                if path == "/api/profiles":
+                    result = applications.save_profile(
+                        database, applications.ProfileInput.model_validate(body)
+                    )
+                    self._json(HTTPStatus.CREATED, result)
+                elif path.startswith("/api/drafts/"):
+                    if not isinstance(body, dict) or set(body) != {"expected_version", "draft"}:
+                        raise ValueError("Campos requeridos: expected_version, draft.")
+                    expected = body["expected_version"]
+                    if isinstance(expected, bool) or not isinstance(expected, int) or expected < 1:
+                        raise ValueError("expected_version debe ser un entero positivo.")
+                    result = applications.revise_draft(
+                        database,
+                        path[len("/api/drafts/") :],
+                        expected,
+                        applications.DraftInput.model_validate(body["draft"]),
+                    )
+                    self._json(HTTPStatus.OK, result)
+                elif path == "/api/searches":
+                    if not isinstance(body, dict) or set(body) != {"profile", "replace"}:
+                        raise ValueError("Campos requeridos: profile, replace.")
+                    if not isinstance(body["replace"], bool):
+                        raise ValueError("replace debe ser booleano.")
+                    profile = saved_searches.SavedSearch.model_validate(body["profile"])
+                    saved_searches.save(database, profile, replace=body["replace"])
+                    self._json(HTTPStatus.OK, profile.model_dump())
+                else:
+                    self._json(HTTPStatus.NOT_FOUND, {"error": "Ruta no encontrada."})
+            except (StorageError, sqlite3.Error, OSError, ValueError, UnicodeError) as error:
                 self._error(error)
 
         def do_OPTIONS(self) -> None:
             self._json(HTTPStatus.METHOD_NOT_ALLOWED, {"error": "OPTIONS no disponible."})
 
         def _application_write(self, *, create: bool) -> None:
-            self.connection.settimeout(2)
+            self.connection.settimeout(10)
             try:
+                route = urlsplit(self.path)
+                draft_create = (
+                    create
+                    and route.path.startswith("/api/applications/")
+                    and route.path.endswith("/drafts")
+                )
+                draft_revision = not create and route.path.startswith("/api/drafts/")
                 length = int(self.headers.get("Content-Length", ""))
                 if self.headers.get("Transfer-Encoding") or not 1 <= length <= 16384:
                     raise ValueError("Cuerpo fuera de límite (1–16384 bytes).")
@@ -339,8 +412,15 @@ def create_server(database: Path, port: int = 8765) -> ThreadingHTTPServer:
                     raise ValueError("Cuerpo incompleto.")
                 if not self._host_allowed() or not self._origin_allowed():
                     return
-                route = urlsplit(self.path)
-                if route.query or (create and route.path != "/api/applications"):
+                if (
+                    route.query
+                    or (create and route.path != "/api/applications" and not draft_create)
+                    or (
+                        not create
+                        and not draft_revision
+                        and not route.path.startswith("/api/applications/")
+                    )
+                ):
                     self._json(HTTPStatus.NOT_FOUND, {"error": "Ruta no encontrada."})
                     return
                 if (
@@ -350,7 +430,26 @@ def create_server(database: Path, port: int = 8765) -> ThreadingHTTPServer:
                     self._json(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, {"error": "Se requiere JSON."})
                     return
                 body = json.loads(raw)
-                if create:
+                if draft_create:
+                    application_id = route.path[len("/api/applications/") : -len("/drafts")].rstrip(
+                        "/"
+                    )
+                    result = applications.create_draft(
+                        database, application_id, applications.DraftInput.model_validate(body)
+                    )
+                elif draft_revision:
+                    if not isinstance(body, dict) or set(body) != {"expected_version", "draft"}:
+                        raise ValueError("Campos requeridos: expected_version, draft.")
+                    expected = body["expected_version"]
+                    if isinstance(expected, bool) or not isinstance(expected, int) or expected < 1:
+                        raise ValueError("expected_version debe ser un entero positivo.")
+                    result = applications.revise_draft(
+                        database,
+                        route.path[len("/api/drafts/") :],
+                        expected,
+                        applications.DraftInput.model_validate(body["draft"]),
+                    )
+                elif create:
                     result = applications.create(database, applications.Create.model_validate(body))
                 else:
                     result = applications.update(
@@ -359,11 +458,67 @@ def create_server(database: Path, port: int = 8765) -> ThreadingHTTPServer:
                         applications.Update.model_validate(body),
                     )
                 self._json(HTTPStatus.OK, result)
-            except (StorageError, sqlite3.Error, OSError, ValueError) as error:
+            except (StorageError, sqlite3.Error, OSError, ValueError, UnicodeError) as error:
                 self._error(error)
 
         def do_POST(self) -> None:
+            if urlsplit(self.path).path.startswith(("/api/simulations", "/api/http-trials")):
+                self._simulation_write()
+                return
             self._application_write(create=True)
+
+        def _simulation_write(self) -> None:
+            http_mode = urlsplit(self.path).path.startswith("/api/http-trials")
+            service = http_trial if http_mode else simulation
+            resource = "http-trials" if http_mode else "simulations"
+            self.connection.settimeout(2)
+            try:
+                length = int(self.headers.get("Content-Length", ""))
+                if self.headers.get("Transfer-Encoding") or not 1 <= length <= 4096:
+                    raise ValueError("Cuerpo fuera del límite permitido.")
+                raw = self.rfile.read(length)
+                if len(raw) != length:
+                    raise ValueError("Cuerpo incompleto.")
+                if not self._host_allowed() or not self._origin_allowed():
+                    return
+                if self.headers.get("Content-Type", "").split(";")[0].strip() != "application/json":
+                    raise ValueError("Se requiere application/json.")
+                route = urlsplit(self.path)
+                if route.query:
+                    raise ValueError("La simulación no acepta parámetros de URL.")
+                body = json.loads(raw)
+                if not isinstance(body, dict):
+                    raise ValueError("Se requiere un objeto JSON.")
+                parts = route.path.strip("/").split("/")
+                if parts == ["api", resource]:
+                    if set(body) != {"draft_id", "version"} or not isinstance(
+                        body["draft_id"], str
+                    ):
+                        raise ValueError("Campos requeridos: draft_id y version.")
+                    result = service.prepare(database, body["draft_id"], body["version"])
+                elif len(parts) == 4 and parts[:2] == ["api", resource]:
+                    if parts[3] == "send":
+                        if set(body) != {"review_sha256", "scenario"} or not all(
+                            isinstance(value, str) for value in body.values()
+                        ):
+                            raise ValueError("Campos requeridos: review_sha256 y scenario.")
+                        result = service.send(
+                            database, parts[2], body["review_sha256"], body["scenario"]
+                        )
+                    elif parts[3] == "reconcile" and not body:
+                        result = service.reconcile(database, parts[2])
+                    elif parts[3] == "retry" and http_mode and set(body) == {"review_sha256"}:
+                        if not isinstance(body["review_sha256"], str):
+                            raise ValueError("review_sha256 debe ser texto.")
+                        result = http_trial.retry(database, parts[2], body["review_sha256"])
+                    else:
+                        raise ValueError("Acción o campos desconocidos.")
+                else:
+                    self._json(HTTPStatus.NOT_FOUND, {"error": "Ruta no encontrada."})
+                    return
+                self._json(HTTPStatus.OK, result)
+            except (StorageError, sqlite3.Error, OSError, ValueError) as error:
+                self._error(error)
 
         def log_message(self, format: str, *args: object) -> None:
             return

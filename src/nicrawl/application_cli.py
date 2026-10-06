@@ -3,7 +3,8 @@
 import json
 import sqlite3
 from collections.abc import Callable
-from typing import Any
+from pathlib import Path
+from typing import Annotated, Any
 
 import typer
 
@@ -78,3 +79,78 @@ def update_command(
             ),
         )
     )
+
+
+# Borradores vinculados a una candidatura y a una versión del perfil.
+drafts_app = typer.Typer(help="Crear, revisar y exportar borradores locales.", no_args_is_help=True)
+app.add_typer(drafts_app, name="draft")
+
+
+@drafts_app.command("create")
+def draft_create(
+    ctx: typer.Context,
+    application_id: str,
+    profile_version: Annotated[int, typer.Option(min=1)],
+    claim_id: Annotated[list[str] | None, typer.Option("--claim-id")] = None,
+    opening: Annotated[str, typer.Option()] = "",
+    question: Annotated[list[str] | None, typer.Option("--question")] = None,
+) -> None:
+    _emit(
+        lambda: applications.create_draft(
+            ctx.obj,
+            application_id,
+            applications.DraftInput(
+                profile_version=profile_version,
+                claim_ids=claim_id or [],
+                opening=opening,
+                questions=question or [],
+            ),
+        )
+    )
+
+
+@drafts_app.command("list")
+def draft_list(ctx: typer.Context, application_id: str) -> None:
+    _emit(lambda: applications.list_drafts(ctx.obj, application_id))
+
+
+@drafts_app.command("show")
+def draft_show(
+    ctx: typer.Context, draft_id: str, version: Annotated[int | None, typer.Option(min=1)] = None
+) -> None:
+    _emit(lambda: applications.show_draft(ctx.obj, draft_id, version))
+
+
+@drafts_app.command("revise")
+def draft_revise(
+    ctx: typer.Context,
+    draft_id: str,
+    expected_version: Annotated[int, typer.Option(min=1)],
+    profile_version: Annotated[int, typer.Option(min=1)],
+    claim_id: Annotated[list[str] | None, typer.Option("--claim-id")] = None,
+    opening: Annotated[str, typer.Option()] = "",
+    question: Annotated[list[str] | None, typer.Option("--question")] = None,
+) -> None:
+    _emit(
+        lambda: applications.revise_draft(
+            ctx.obj,
+            draft_id,
+            expected_version,
+            applications.DraftInput(
+                profile_version=profile_version,
+                claim_ids=claim_id or [],
+                opening=opening,
+                questions=question or [],
+            ),
+        )
+    )
+
+
+@drafts_app.command("export")
+def draft_export(
+    ctx: typer.Context,
+    draft_id: str,
+    output: Annotated[Path, typer.Option("--output")],
+    version: Annotated[int | None, typer.Option(min=1)] = None,
+) -> None:
+    _emit(lambda: {"exported": str(applications.export_draft(ctx.obj, draft_id, output, version))})

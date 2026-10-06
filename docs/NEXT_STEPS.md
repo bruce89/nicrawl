@@ -1,6 +1,6 @@
 # Próximos cortes: agentes y postulaciones asistidas
 
-Actualizado: 2026-09-30. I0–I10 están implementados. Este documento registra I8 y alternativas futuras; no aprueba envíos de candidaturas. La evaluación manual `rank` vs `list` sigue pendiente y puede hacerse en paralelo al uso de I8.
+Actualizado: 2026-10-04. I0–I12b están implementados. Este documento registra I8 y alternativas futuras; no aprueba envíos de candidaturas. La evaluación manual `rank` vs `list` sigue pendiente y puede hacerse en paralelo al uso de I8.
 
 ## I8 — herramientas de lectura para agentes
 
@@ -22,15 +22,19 @@ Salida mínima: `job_key`, fuente/URL, fecha observada, campos usados y razones 
 
 ## Hitos posteriores, en orden propuesto
 
-I10 está implementado; I11+ permanece como secuencia candidata y pendiente de aprobación.
+I12b está aprobado e implementado como receptor HTTP propio. I12c reserva la evaluación de integración real.
 
 | Corte | Entrega | Condición para avanzar |
 | --- | --- | --- |
 | I9 | Implementado: perfiles UI/API/CLI, filtro por título y comparación sobre una instantánea estable | Perfil senior-uy y muestra preparados; etiquetas personales y elección de nuevos boards según evidencia pendientes. [Contrato](SAVED_SEARCHES.md) |
 | I10 | Implementado: candidaturas y referencias manuales | Entidad separada, identidad, historial y estados; URL de LinkedIn guardada sin extracción. [Contrato](APPLICATIONS.md). No envía postulaciones |
-| I11 | Preparación asistida de candidatura | Perfil y CV aportados por el usuario, versiones, borradores por puesto, evidencia de cada afirmación y preguntas sin responder; vista previa y exportación local revisables |
-| I12 | Prueba de envío con un destino autorizado | API/permiso verificables para ese caso, entorno de prueba, campos y adjuntos revisados, autorización del envío concreto, trazabilidad e idempotencia; un timeout deja estado incierto hasta reconciliar, sin reenvío ciego |
+| I11 | Implementado: perfiles versionados y borradores locales con citas textuales | Revisión/exportación manual; no se envía ni completa respuestas. [Contrato](PROFILE_DRAFTS.md) y [ADR-014](adr/014-profile-drafts.md) |
+| I12a | Implementado: ensayo de recepción local durable, revisión y reconciliación | [Contrato](SIMULATION.md) y [guía](../LearnDocs/20-local-submission-lab.md); no transmite postulaciones |
+| I12b | Implementado: receptor HTTP propio en otro proceso local | [Contrato](HTTP_TRIAL.md); token, recibos durables y reintentos explícitos con la misma clave |
+| I12c | Evaluar portal/ATS real y eventual integración autorizada | API/permiso verificables para ese caso, entorno de prueba, campos y adjuntos revisados, autorización del envío concreto, trazabilidad e idempotencia; un timeout deja estado incierto hasta reconciliar, sin reenvío ciego |
 | Futuro condicional | Mayor automatización de postulaciones | Resultados de I12, límites por corrida, deduplicación entre fuentes, manejo de cambios/cierre de avisos y fallos parciales; no prometer integración con una plataforma sin acceso permitido |
+
+I11 fue aprobado el 2026-10-03 con “Perfecto, vamos con I11” y validado manualmente por el usuario el 2026-10-04 (“Ya valide I11, quedo joya”). Posteriormente se aprobó I12a con “Dale con la parte a”. El usuario luego eligió el receptor propio (I12b) y pidió evaluar portales/ATS reales más adelante (I12c, pendiente en SPEC).
 
 La recolección programada y las alertas siguen como mejoras opcionales del roadmap. Conviene concretarlas cuando la colección sea pertinente y se defina cómo manejar Windows dormido, reinicios, cuotas y avisos. Una búsqueda guardada ya reduce fricción sin incorporar un scheduler.
 

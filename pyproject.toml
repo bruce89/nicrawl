@@ -1,6 +1,6 @@
 [project]
 name = "nicrawl"
-version = "0.10.0"
+version = "0.13.0"
 description = "Recolector local de ofertas con dos fuentes, SQLite y laboratorios de scraping y concurrencia"
 readme = "README.md"
 requires-python = ">=3.14,<3.15"

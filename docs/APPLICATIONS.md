@@ -29,7 +29,7 @@ No se unifican anuncios con URLs distintas, shortlinks o referencias de diferent
 
 ## Persistencia y privacidad
 
-`<base>.applications.sqlite3` se crea en la primera escritura válida, junto a la base elegida por `--db`. Por ejemplo `data/nicrawl.sqlite3.applications.sqlite3`. Tiene identidad SQLite propia y esquema 1; tablas applications, identities y events. No migra ni escribe en SQLite de ofertas. La creación manual puede funcionar aun sin colección; crear por job_key requiere una oferta existente. `serve` sigue requiriendo una colección válida.
+`<base>.applications.sqlite3` se crea en la primera escritura válida, junto a la base elegida por `--db`. Por ejemplo `data/nicrawl.sqlite3.applications.sqlite3`. Tiene identidad SQLite propia y esquema 2; tablas applications, identities, events, profile_versions, profile_claims, drafts y draft_versions. La migración de esquema 1 ocurre al escribir y es transaccional. No migra ni escribe en SQLite de ofertas. La creación manual puede funcionar aun sin colección; crear por job_key requiere una oferta existente. `serve` sigue requiriendo una colección válida.
 
 Las lecturas sin archivo devuelven lista vacía o no encontrado y no crean archivos. SQLite serializa escritores mediante BEGIN IMMEDIATE; índices únicos protegen identidades. Un archivo ajeno/incompatible se rechaza sin migrarlo. Respaldar este archivo además de ofertas/perfiles, con la aplicación detenida o mediante SQLite backup. `data/` no se publica en Git. No hay cifrado añadido; notas e historial son datos personales locales. Las herramientas MCP de I8 no acceden a este almacén.
 
@@ -48,4 +48,4 @@ CLI: `applications add`, `list`, `show`, `update`; ejemplos en la guía. UI: enl
 
 POST devuelve `created` y detalle, HTTP 200 tanto en alta como duplicado. PATCH devuelve detalle. Escrituras: JSON, Host/Origin locales, cuerpo máximo 16384 bytes y timeout de lectura. Campos desconocidos y tipos incorrectos: 400; no encontrado: 404; revisión/identidad en conflicto: 409. El servidor permanece en loopback. Los mensajes se muestran como texto, no HTML.
 
-I11 es preparación de candidaturas con perfil/CV aportados por el usuario y borradores revisables. I12 tratará eventuales envíos autorizados con su propio contrato; no quedan aprobados por implementar seguimiento.
+I11 agrega las rutas de perfil y borrador descritas en [PROFILE_DRAFTS.md](PROFILE_DRAFTS.md). El CV queda local y sin cifrar; los borradores no se envían. I12 requerirá autorización y un mecanismo permitido para el destino concreto.

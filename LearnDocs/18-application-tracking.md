@@ -87,4 +87,4 @@ Ruta de código: [application_cli.py](../src/nicrawl/application_cli.py) o [serv
 
 Esto conecta tres conceptos: identidad estable (evitar duplicados), transacción (estado e historia juntos) y concurrencia optimista (rechazar una versión vieja). Se parecen a editar un recurso con ETag o versión de entidad; acá la revisión es explícita y local.
 
-El [contrato](../docs/APPLICATIONS.md) detalla límites. No se crearon candidaturas reales por vos durante la implementación. I11 —perfil/CV y borradores de postulación— sigue pendiente de aprobación.
+El [contrato](../docs/APPLICATIONS.md) detalla límites. No se crearon candidaturas reales por vos durante la implementación. I11 agrega perfil/CV y borradores locales; consultá la [guía práctica](19-profile-and-drafts.md).

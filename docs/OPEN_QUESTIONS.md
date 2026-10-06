@@ -54,7 +54,7 @@ El usuario indicó Senior Software Engineer, remoto o presencial desde Uruguay. 
 
 ## I8 aprobado
 
-2026-09-30: el usuario indicó “Bien, vamos con I8”. Implementadas tres herramientas MCP de lectura, extra opcional y demo sin modelo; [contrato](AGENT_TOOLS.md). I9 aprobado posteriormente; I10 aprobado posteriormente; I11+ pendiente y evaluación personal pendiente.
+2026-09-30: el usuario indicó “Bien, vamos con I8”. Implementadas tres herramientas MCP de lectura, extra opcional y demo sin modelo; [contrato](AGENT_TOOLS.md). I9 aprobado posteriormente; I10 aprobado posteriormente; I11 aprobado e implementado el 2026-10-03; I12 y evaluación personal pendientes.
 
 ## Historial
 
@@ -79,3 +79,9 @@ v0.3 documental / app 0.2.0, 2026-09-25: I2 aprobado explícitamente e implement
 v0.2, 2026-09-25: I0 + I1 implementados y verificados. CLI offline, cinco fixtures, 41 pruebas y guía del primer corte. Ejercicios personales pendientes. I2+ sigue sin aprobación.
 
 v0.1, 2026-09-24: primera propuesta documental. Organización inspirada en ForeKast; diseño adaptado a adquisición y calidad de datos. Se separaron producto y aprendizaje y se dejaron fichas de implementación pendientes. No se modificó ForeKast.
+
+2026-10-03: I11 aprobado e implementado en 0.11.0. La base personal ahora almacena texto de CV sin cifrar; borradores son locales, versionados y revisables, con citas verificables por presencia literal. Sin generación por modelo ni envíos. Ver [contrato](PROFILE_DRAFTS.md) y [ADR-014](adr/014-profile-drafts.md).
+
+2026-10-04: I12a aprobado con “Dale con la parte a” e implementado. I12b queda pendiente de destino autorizado y contrato de envío/reconciliación. Se eligió un receptor simulado persistente en SQLite, sin transporte externo.
+
+2026-10-04: el usuario eligió receptor propio por HTTP, implementado en I12b. La evaluación de un portal o ATS real queda pendiente en SPEC como I12c, con criterios de acceso, permisos, datos y recuperación antes de decidir integración.

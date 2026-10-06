@@ -1,3 +1,51 @@
+## I12b — receptor HTTP propio (2026-10-04)
+
+Aplicación **0.13.0**. **220 pruebas pasan**: 208 anteriores y 12 nuevas.
+Ruff, mypy estricto y sintaxis JavaScript pasan. Entorno sincronizado offline desde
+el lock; el ejecutable local informa 0.13.0.
+
+Los casos nuevos cubren aceptación/rechazo, recibos estables ante repetición,
+timeouts HTTP antes/después del recibo, consulta obligatoria antes del reintento,
+recuperación de sending, hash/puerto inválidos, autenticación y Origin, conflicto de
+contenido para una clave, envíos concurrentes, respuestas inválidas, cambio de
+identidad del receptor y paridad CLI/API. Un receptor en subproceso se detiene y
+reinicia: la consulta sin proceso conserva incertidumbre y luego recupera el recibo.
+
+Recorrido real de UI con material ficticio en un directorio temporal: reabrir borrador
+→ preparar ensayo HTTP → revisar → timeout-before → incierto → consultar sin recibo
+→ reintentar con la misma clave → aceptado. La consulta habilita el reintento; el
+identificador se conserva y la candidatura permanece Borrador. Captura local en
+`work/i12b-ui.png` (excluida de Git). Servidores de prueba cerrados al terminar.
+
+No se utilizaron CV ni candidaturas personales. Estas pruebas verifican nuestro
+protocolo HTTP en loopback; no acreditan compatibilidad con un portal externo.
+La evaluación de proveedores reales queda pendiente como I12c en el SPEC.
+
+## I12a — evidencia técnica (2026-10-04)
+
+Aplicación 0.12.0. **208 pruebas pasan**: 197 anteriores y 11 nuevas de I12a.
+Ruff y mypy estricto pasan; sintaxis de JavaScript y `git diff --check` verificados.
+Entorno sincronizado desde el lock sin red, ejecutable local informa 0.12.0.
+
+Los nuevos casos cubren los cuatro escenarios, confirmación incorrecta, carreras de
+preparación/envío sin duplicar recibos, instantánea conservada tras revisar un borrador,
+preguntas pendientes, rollback, archivo ajeno intacto, compatibilidad de lectura con
+seguimiento I10 sin migrarlo y operación compartida CLI/API. La API rechaza origen
+ajeno y versiones booleanas. Los ensayos no modifican el almacén de candidaturas.
+
+Recorrido en navegador sobre una base temporal ficticia: reabrir borrador → preparar
+→ confirmar timeout-after → incierto → consultar recibo → aceptado por el simulador.
+Confirmar permanece deshabilitado mientras no se marca revisión y tras aceptación;
+la candidatura permanece Borrador. Captura local en `work/i12a-ui.png` (excluida de Git).
+Servidor de ensayo cerrado al terminar. No se utilizaron CV ni candidaturas personales.
+
+Límite: el receptor usa una transacción SQLite local; estas pruebas no validan un ATS
+externo, transporte HTTP saliente ni fallos de red reales. I12b continúa pendiente.
+
+## I11 — estado de verificación (2026-10-03)
+
+I11 implementa perfiles versionados, citas exactas, borradores por candidatura, historial de revisiones y exportación local exclusiva. No se agregaron ni ejecutaron pruebas automatizadas en esta iteración. El 2026-10-04 el usuario confirmó la validación manual de I11: “Ya valide I11, quedo joya”. Se registra como validación funcional reportada por el usuario, sin inferir cobertura de casos específicos ni ejecución de la suite automatizada.
+
 # Validación — I10
 
 ## Evidencia técnica I10 (2026-09-30)

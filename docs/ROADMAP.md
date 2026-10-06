@@ -1,6 +1,6 @@
 # Roadmap de producto y aprendizaje
 
-Actualizado 2026-09-30: **I0–I10 aprobados e implementados técnicamente**. I11+ sigue pendiente de aprobación. Los ejercicios del usuario son una etapa de aprendizaje separada; no se presumen completados.
+Actualizado 2026-10-04: **I0–I12b aprobados e implementados técnicamente**. I12c sigue como evaluación pendiente. Los ejercicios del usuario son una etapa de aprendizaje separada; no se presumen completados.
 
 | Corte | Entrega | Aprendizaje principal | Estado |
 | --- | --- | --- | --- |
@@ -16,7 +16,10 @@ Actualizado 2026-09-30: **I0–I10 aprobados e implementados técnicamente**. I1
 | I8 | Herramientas de lectura para agentes | Contratos, evidencia, proyección de datos privados y límites | Implementado: MCP stdio, demo y [contratos](AGENT_TOOLS.md) |
 | I9 | Búsquedas guardadas, filtro por título y evaluación reproducible | Perfiles, snapshots, etiquetas e incertidumbre | Implementado; [guía](../LearnDocs/17-saved-searches-and-relevance.md); evaluación personal pendiente |
 | I10 | Candidaturas y referencias manuales con historial | Identidad, transacciones y concurrencia optimista | Implementado; [guía](../LearnDocs/18-application-tracking.md) |
-| I11–I12 | Borradores y eventual envío autorizado | Pertinencia, estados, evidencia e idempotencia | Hitos propuestos; sujetos a revisión |
+| I11 | Perfil versionado y borradores locales con evidencia | Procedencia y versiones | Validación manual confirmada el 2026-10-04 |
+| I12a | Receptor simulado local durable | Idempotencia, instantáneas y reconciliación | Implementado y verificado; [guía](../LearnDocs/20-local-submission-lab.md) |
+| I12b | Receptor HTTP propio y emisor en procesos separados | Transporte, autenticación local e incertidumbre | Implementado; [guía](../LearnDocs/21-http-receiver-lab.md) |
+| I12c | Evaluar un portal/ATS real | Acceso, datos y garantías del proveedor | Pendiente; [criterios en SPEC](SPEC.md#evaluación-posterior-i12c-integración-real) |
 
 ## Primer corte entregado
 
@@ -32,7 +35,7 @@ La funcionalidad real empieza en I2. El MVP cierra con I3. I1 no se venderá com
 
 ## Siguiente paso
 
-I10 está implementado. El siguiente corte propuesto es I11: perfil/CV y preparación asistida de borradores revisables, pendiente de aprobación. La [secuencia detallada](NEXT_STEPS.md) define aceptación y hitos hacia postulaciones asistidas, incluyendo la viabilidad de LinkedIn revisada el 2026-09-30. El experimento pendiente compara `rank` vs `list`; `mark` guarda decisiones personales.
+I12b está implementado: receptor HTTP propio local, confirmación y reconciliación entre procesos. I12c queda pendiente para evaluar destinos reales antes de decidir cualquier integración. La [secuencia detallada](NEXT_STEPS.md) define aceptación y hitos hacia postulaciones asistidas, incluyendo la viabilidad de LinkedIn revisada el 2026-09-30. El experimento pendiente compara `rank` vs `list`; `mark` guarda decisiones personales.
 
 ## Candidatos posteriores
 

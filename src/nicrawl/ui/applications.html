@@ -20,6 +20,16 @@
           <button class="save" type="submit">Crear borrador local</button>
         </form>
         <p id="create-status" role="status" class="helper" aria-live="polite"></p>
+        <h2>Perfil y CV local</h2>
+        <p class="helper">Se guarda sin cifrar en este equipo. Usá citas literales del CV; no se completa información automáticamente.</p>
+        <form id="profile-form">
+          <label for="profile-label">Nombre de versión</label><input id="profile-label" maxlength="80" required>
+          <label for="profile-cv">Texto del CV</label><textarea id="profile-cv" maxlength="300000" required></textarea>
+          <label for="profile-claim">Afirmación que quieras usar</label><input id="profile-claim" maxlength="500" required>
+          <label for="profile-evidence">Cita exacta del CV que la respalda</label><textarea id="profile-evidence" maxlength="2000" required></textarea>
+          <button class="save" type="submit">Guardar nueva versión</button>
+        </form>
+        <p id="profile-status" role="status" class="helper" aria-live="polite"></p>
         <p class="helper">Para una oferta de tu colección, usá “Crear seguimiento” en su detalle.</p>
       </aside>
       <section class="results" aria-label="Candidaturas">

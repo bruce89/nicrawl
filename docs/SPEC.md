@@ -2,6 +2,30 @@
 
 Estado: MVP técnico I0–I3 y extensiones I4–I6 aprobados e implementados al 2026-09-28. El alcance futuro que sigue en este documento no está implementado por el solo hecho de estar especificado.
 
+Actualización 2026-10-04: I12a añade el simulador SQLite y **I12b implementa un receptor
+HTTP propio en otro proceso local**, con revisión, token, deduplicación y reconciliación.
+El usuario eligió este camino y pidió dejar la evaluación de una integración real para
+más adelante. Contrato: [HTTP_TRIAL](HTTP_TRIAL.md). No se habilitan envíos a terceros.
+
+## Evaluación posterior I12c: integración real
+
+**Pendiente; no implementada ni aprobada para enviar candidaturas.** Antes de elegir un
+portal o ATS, comparar destinos concretos y registrar evidencia de:
+
+1. API de postulación disponible para nuestro caso como candidato o acceso autorizado
+   equivalente; una API para publicar ofertas/operar un ATS no acredita ese acceso.
+2. Permisos, condiciones vigentes, credenciales, cuotas/costos y entorno de pruebas.
+3. Campos y adjuntos requeridos, datos que saldrían del equipo y tratamiento/retención.
+4. Garantías de idempotencia y reconciliación: cómo consultar un resultado incierto,
+   cuánto dura una clave, qué ocurre con errores, cierre de vacantes y reintentos.
+5. Revisión humana del contenido, destino y autorización de cada envío concreto.
+
+Entregable de esa evaluación: una ficha comparativa con fuentes oficiales y una
+recomendación fundada (integrar, postergar o mantener postulación manual). No se
+presupone que LinkedIn u otro portal permita automatizar postulaciones. Si no existe
+un mecanismo permitido, conservar el flujo manual apoyado por borradores y seguimiento.
+La autorización de I12b no aprueba I12c ni el uso de credenciales o datos reales externos.
+
 ## Problema y propósito
 
 Las ofertas están repartidas, cambian y se repiten. nicrawl ofrecerá una colección local consultable, con origen y antigüedad visibles. Permitirá responder: qué encontré, qué cambió desde la recolección anterior y dónde puedo leer el aviso original.

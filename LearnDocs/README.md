@@ -6,6 +6,9 @@ Esta carpeta enseña conceptos y propone experimentos. [docs](../docs/SPEC.md) d
 
 | Orden | Lectura | Pregunta central |
 | --- | --- | --- |
+| I12b | [Receptor HTTP propio](21-http-receiver-lab.md) | ¿Cómo recupero una entrega cuando los procesos y sus commits son independientes? |
+| I12a | [Ensayo de recepción local](20-local-submission-lab.md) | ¿Cómo recupero un resultado incierto sin duplicar el envío? |
+| I11 | [Perfil y borradores](19-profile-and-drafts.md) | ¿Cómo conservo procedencia y versiones al preparar material? |
 | I10 | [Seguimiento de candidaturas](18-application-tracking.md) | ¿Cómo separo identidad, estado e historial de una marca personal? |
 | I9 | [Búsquedas guardadas y pertinencia](17-saved-searches-and-relevance.md) | ¿Puedo repetir y evaluar mi criterio sobre una muestra fija? |
 | I8 | [Herramientas para agentes](16-agent-tools.md) | ¿Cómo expongo lectura con contratos, evidencia y privacidad? |
@@ -30,4 +33,4 @@ Antes de ejecutar, predecir. Después observar entrada, transformaciones y salid
 
 No hace falta estudiar todo Python antes de I1. Sí hace falta entender qué parte del sistema se está ejecutando, quién posee los recursos y qué invariantes protege. Una sesión puede terminar con una hipótesis falsa bien explicada; eso también es progreso.
 
-**I0–I10 están implementados y técnicamente verificados.** Empezá por la [guía I7](15-local-ui-api.md) si querés comparar navegador, HTTP y CLI; las guías anteriores recorren adquisición, consulta, concurrencia y ranking. Tus laboratorios y bitácora personales siguen pendientes. I8 agrega la guía de herramientas MCP; I11+ continúa como propuesta.
+**I0–I12b están implementados.** I11 fue validado manualmente por el usuario el 2026-10-04; ver [VALIDATION](../VALIDATION.md). Empezá por la [guía I7](15-local-ui-api.md) si querés comparar navegador, HTTP y CLI; las guías anteriores recorren adquisición, consulta, concurrencia y ranking. Tus laboratorios y bitácora personales siguen pendientes. I8 agrega la guía de herramientas MCP; I11 suma perfil y borradores locales; I12a enseña idempotencia y reconciliación con un receptor simulado.
